@@ -88,8 +88,9 @@ ADD supervisor /etc/supervisor
 #ADD jobs/cron.daily /etc/cron.daily
 #ADD jobs/cron.monthly /etc/cron.monthly
 
-RUN mkdir -p /data/logs && ls /data/stock/ && chmod 755 /data/stock/jobs/run_* &&  \
-    chmod 755 /etc/cron.minutely/* && chmod 755 /etc/cron.hourly/* && \
-    chmod 755 /etc/cron.daily/* && chmod 755 /etc/cron.monthly/*
+RUN mkdir -p /data/logs && ls /data/stock/ && chmod 755 /data/stock/jobs/run_*
 
-ENTRYPOINT ["supervisord","-n","-c","/etc/supervisor/supervisord.conf"]
+#RUN chmod 755 /etc/cron.minutely/* && chmod 755 /etc/cron.hourly/*
+#RUN chmod 755 /etc/cron.daily/* && chmod 755 /etc/cron.monthly/*
+
+#ENTRYPOINT ["supervisord","-n","-c","/etc/supervisor/supervisord.conf"]

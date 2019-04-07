@@ -1,3 +1,7 @@
+### TODO
+1. 其实可以在本地搭建一个环境，就照着Dockerfile做即可
+1. 入口函数基本都在: jobs/cron.daily/run_daily
+
 ### 使用方法（依赖docker）
 
 已经放到docker hub上了
