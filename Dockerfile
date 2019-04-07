@@ -10,8 +10,9 @@ FROM docker.io/python:3.6-slim
 #deb http://mirrors.aliyun.com/debian/ stretch-updates main non-free contrib\n\
 #deb-src http://mirrors.aliyun.com/debian/ stretch-updates main non-free contrib\n\
 #deb http://mirrors.aliyun.com/debian/ stretch-backports main non-free contrib\n\
-#deb-src http://mirrors.aliyun.com/debian/ stretch-backports main non-free contrib" > /etc/apt/sources.list && \
-#echo  "[global]\n\
+#deb-src http://mirrors.aliyun.com/debian/ stretch-backports main non-free contrib" > /etc/apt/sources.list 
+
+#RUN echo  "[global]\n\
 #trusted-host=mirrors.aliyun.com\n\
 #index-url=http://mirrors.aliyun.com/pypi/simple" > /etc/pip.conf
 
@@ -28,12 +29,14 @@ RUN apt-get update && apt-get install -y gcc make axel python3-dev default-libmy
     pip3 install numpy pandas  && \
     pip3 install tushare && \
     pip3 install tornado torndb && \
-    pip3 install bokeh stockstats && \
-    cd /tmp && axel https://nchc.dl.sourceforge.net/project/ta-lib/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz && \
-    tar xvfz ta-lib-0.4.0-src.tar.gz && \
-    cd ta-lib && ./configure && make && make install  && cd /tmp && rm -rf * && \
-    pip3 install TA-Lib  && \
-    apt-get --purge remove -y gcc make axel python3-dev default-libmysqlclient-dev libxml2-dev && \
+    pip3 install bokeh stockstats
+
+#RUN cd /tmp && axel https://nchc.dl.sourceforge.net/project/ta-lib/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz && \
+    #tar xvfz ta-lib-0.4.0-src.tar.gz && \
+    #cd ta-lib && ./configure && make && make install  && cd /tmp && rm -rf * && \
+    #pip3 install TA-Lib
+
+RUN apt-get --purge remove -y gcc make axel python3-dev default-libmysqlclient-dev libxml2-dev && \
     rm -rf /root/.cache/* && apt-get clean && apt-get autoremove -y
 
 # /usr/local/lib/python3.6/site-packages/pandas/
