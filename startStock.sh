@@ -53,4 +53,4 @@ echo "starting stock ..."
 # /data/stock 是代码目录 -v /data/stock:/data/stock 是开发模式。
 docker run -itd --link=mariadb --name stock  \
     -p 9999:9999 \
-   pythonstock/pythonstock:latest
+    xiaoyaoliu/pystock:latest

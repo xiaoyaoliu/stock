@@ -3,18 +3,19 @@ FROM docker.io/python:3.6-slim
 
 # https://opsx.alibaba.com/mirror
 # 使用阿里云镜像地址。修改debian apt 更新地址，pip 地址，设置时区。
-RUN echo  "deb http://mirrors.aliyun.com/debian/ stretch main non-free contrib\n\
-deb-src http://mirrors.aliyun.com/debian/ stretch main non-free contrib\n\
-deb http://mirrors.aliyun.com/debian-security stretch/updates main\n\
-deb-src http://mirrors.aliyun.com/debian-security stretch/updates main\n\
-deb http://mirrors.aliyun.com/debian/ stretch-updates main non-free contrib\n\
-deb-src http://mirrors.aliyun.com/debian/ stretch-updates main non-free contrib\n\
-deb http://mirrors.aliyun.com/debian/ stretch-backports main non-free contrib\n\
-deb-src http://mirrors.aliyun.com/debian/ stretch-backports main non-free contrib" > /etc/apt/sources.list && \
-echo  "[global]\n\
-trusted-host=mirrors.aliyun.com\n\
-index-url=http://mirrors.aliyun.com/pypi/simple" > /etc/pip.conf && \
-ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+#RUN echo  "deb http://mirrors.aliyun.com/debian/ stretch main non-free contrib\n\
+#deb-src http://mirrors.aliyun.com/debian/ stretch main non-free contrib\n\
+#deb http://mirrors.aliyun.com/debian-security stretch/updates main\n\
+#deb-src http://mirrors.aliyun.com/debian-security stretch/updates main\n\
+#deb http://mirrors.aliyun.com/debian/ stretch-updates main non-free contrib\n\
+#deb-src http://mirrors.aliyun.com/debian/ stretch-updates main non-free contrib\n\
+#deb http://mirrors.aliyun.com/debian/ stretch-backports main non-free contrib\n\
+#deb-src http://mirrors.aliyun.com/debian/ stretch-backports main non-free contrib" > /etc/apt/sources.list && \
+#echo  "[global]\n\
+#trusted-host=mirrors.aliyun.com\n\
+#index-url=http://mirrors.aliyun.com/pypi/simple" > /etc/pip.conf
+
+Run ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone
 
 #安装 mysqlclient tushare (pandas ,numpy) tornado bokeh
@@ -79,10 +80,10 @@ ADD libs /data/stock/libs
 ADD web /data/stock/web
 ADD supervisor /etc/supervisor
 
-ADD jobs/cron.minutely /etc/cron.minutely
-ADD jobs/cron.hourly /etc/cron.hourly
-ADD jobs/cron.daily /etc/cron.daily
-ADD jobs/cron.monthly /etc/cron.monthly
+#ADD jobs/cron.minutely /etc/cron.minutely
+#ADD jobs/cron.hourly /etc/cron.hourly
+#ADD jobs/cron.daily /etc/cron.daily
+#ADD jobs/cron.monthly /etc/cron.monthly
 
 RUN mkdir -p /data/logs && ls /data/stock/ && chmod 755 /data/stock/jobs/run_* &&  \
     chmod 755 /etc/cron.minutely/* && chmod 755 /etc/cron.hourly/* && \
