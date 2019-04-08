@@ -1,9 +1,10 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 
+import sys
+sys.path.append("/data/stock/")
 
 import libs.common as common
-import sys
 import os
 import time
 import pandas as pd
