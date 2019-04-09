@@ -76,6 +76,15 @@ def stat_today_all(tmp_datetime):
 
     print(datetime_str)
 
+    time.sleep(5)  # 停止5秒
+    data = ts.get_stock_basics()
+    if not data is None and len(data) > 0:
+        data = data.drop_duplicates(subset="code", keep="last")
+        data.head(n=1)
+        common.insert_db(data, "ts_stock_basics", False, "`totalAssets`,`code`")
+    else:
+        print("no data . stock_basics")
+
 
 # main函数入口
 if __name__ == '__main__':
