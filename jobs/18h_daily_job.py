@@ -67,7 +67,7 @@ def stat_today_all(tmp_datetime):
 def stat_stock_basics(tmp_datetime):
     data = ts.get_stock_basics()
     if not data is None and len(data) > 0:
-        data = data.drop_duplicates(subset="code", keep="last")
+        # data = data.drop_duplicates(subset="code", keep="last")
         data.head(n=1)
         common.insert_db(data, "ts_stock_basics", False, "`totalAssets`,`code`")
     else:
