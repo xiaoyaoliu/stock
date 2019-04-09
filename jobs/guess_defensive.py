@@ -435,10 +435,29 @@ def stat_index_all_no_use(tmp_datetime):
     # 进行左连接.
     # tmp = pd.merge(tmp, tmp2, on=['company_id'], how='left')
 
+def defensive_main(self):
+    """
+    1. 适当的企业规模。工业企业年销售额不低于1亿美元(8亿人民币左右)；公用事业企业，总资产不低于5000万美元(4亿人民币左右)
+
+    http://tushare.org/fundamental.html
+
+    1.1 总资产totalAssets(万元) 在表ts_stock_basics,
+        考虑通货膨胀，这里总资产暂时设置为40亿人民币
+        2019年4月10日，A股共3609家上市公司，总资产超过40亿的公司有1819家，占比50.4%
+        sql方法: SELECT name from ts_stock_basics WHERE totalAssets > 400000;
+    1.2 年销售额，使用business_income, 营业收入(百万元)
+        考虑通货膨胀，这里暂时设置为80亿人民币，且最近3年都超过80亿人民币，每个季度的财报不低于20亿人民币
+
+    2. 足够强劲的财务状况。工业企业流动资产应该至少是流动负债的2倍，且长期债务不应该超过流动资产净额，即"营运资本"。公用事业企业，负债不应该超过股权的两倍。
+
+    3.
+    """
+    import tushare as ts
+    data = ts.get_stock_basics()
+    pass
+
 
 # main函数入口
 if __name__ == '__main__':
     # 使用方法传递。
-    import tushare as ts
-    data = ts.get_stock_basics()
-
+    defensive_main()
