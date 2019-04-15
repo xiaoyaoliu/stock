@@ -448,9 +448,27 @@ def defensive_main(self):
     1.2 年销售额，使用business_income, 营业收入(百万元)
         考虑通货膨胀，这里暂时设置为80亿人民币，且最近3年都超过80亿人民币，每个季度的财报不低于20亿人民币
 
+        2017年，3605家公司发布年度财报，只有659家的年营业收入超过80亿元人民币，占18%
+        1年的sql方法: select name, business_income from ts_stock_profit where year=2017 AND business_income>8000;
+
+        2015 ～2017，连续3年营收大于80亿的，只有431家（共3558家），占12%
+        3年的sql方法: select code, name from ts_stock_profit where (year=2017 or year=2016 or year=2015) AND business_income>8000 group by code having count(distinct year) = 3;
+
     2. 足够强劲的财务状况。工业企业流动资产应该至少是流动负债的2倍，且长期债务不应该超过流动资产净额，即"营运资本"。公用事业企业，负债不应该超过股权的两倍。
 
-    3.
+        TODO 流动资产在stock_basics里面，
+
+    3. 利润的稳定性，过去10年中，普通股每年都有一定的利润。
+
+    4. 股息记录, 至少有20年连续支付股息的记录。A股历史较短，减小到10年
+
+    5. 过去10年内，每股利润的增长至少要达到三分之一(期初与期末使用三年平均数)
+
+    6. 适度的市盈率，当期股价不应该高于过去3年平均利润的15倍
+
+    7. 适度的股价资产比
+
+
     """
     import tushare as ts
     data = ts.get_stock_basics()

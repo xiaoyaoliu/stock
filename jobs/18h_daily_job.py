@@ -75,10 +75,13 @@ def stat_stock_basics(tmp_datetime):
 
 def stat_stock_profit(tmp_datetime, max_year=18):
     """
-    TODO 只取年报，每年第4季度财报就是年报，写入数据库的时候要加上一个year的字段
+    以后每年7月份取一下上年的年报即可，历史数据不必再取
+    经验: 19年4月份取18年的年报是不全的，所以延到7月取
     """
-    cur_year = int((tmp_datetime).strftime("%Y"))
-    i = cur_year - max_year
+    # cur_year = int((tmp_datetime).strftime("%Y"))
+    cur_year = 2005
+    # i = cur_year - max_year
+    i = 2001
     MAX_RETRY_TIME = 3
     retry_time = 0
     while i < cur_year:
@@ -112,4 +115,4 @@ if __name__ == '__main__':
     # tmp_datetime = common.run_with_args(stat_today_all)
     # time.sleep(5)  # 停止5秒
     # tmp_datetime = common.run_with_args(stat_stock_basics)
-    tmp_datetime = common.run_with_args(stat_stock_profit)
+    # tmp_datetime = common.run_with_args(stat_stock_profit)
