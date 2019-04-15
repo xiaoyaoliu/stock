@@ -79,6 +79,8 @@ def stat_stock_profit(tmp_datetime, max_year=18):
     """
     cur_year = int((tmp_datetime).strftime("%Y"))
     i = cur_year - max_year
+    MAX_RETRY_TIME = 3
+    retry_time = 0
     while i < cur_year:
         try:
             data = ts.get_profit_data(i, 4)
@@ -91,8 +93,14 @@ def stat_stock_profit(tmp_datetime, max_year=18):
             data.head(n=1)
             common.insert_db(data, "ts_stock_profit", False, "`code`,`name`")
             i += 1
+            retry_time = 0
         else:
             print("\nno data . stock_profit year", i)
+            retry_time += 1
+            if retry_time > MAX_RETRY_TIME:
+                i += 1
+                retry_time = 0
+
         time.sleep(5)  # 停止5秒
 
 
