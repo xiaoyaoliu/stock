@@ -73,21 +73,26 @@ def stat_stock_basics(tmp_datetime):
     else:
         print("no data . stock_basics")
 
-def stat_stock_profit(tmp_datetime, max_year=20):
+def stat_stock_profit(tmp_datetime, max_year=18):
     """
     TODO 只取年报，每年第4季度财报就是年报，写入数据库的时候要加上一个year的字段
     """
     cur_year = int((tmp_datetime).strftime("%Y"))
-    for i in range(cur_year - max_year, cur_year):
-        data = ts.get_profit_data(i, 4)
-        print("year", i)
+    i = cur_year - max_year
+    while i < cur_year:
+        try:
+            data = ts.get_profit_data(i, 4)
+        except IOError:
+            data = None
         if not data is None and len(data) > 0:
+            print("\nyear done", i)
             # data = data.drop_duplicates(subset="code", keep="last")
             data.insert(0, "year", [i] * len(data))
             data.head(n=1)
             common.insert_db(data, "ts_stock_profit", False, "`code`,`name`")
+            i += 1
         else:
-            print("no data . stock_basics")
+            print("\nno data . stock_profit year", i)
         time.sleep(5)  # 停止5秒
 
 
