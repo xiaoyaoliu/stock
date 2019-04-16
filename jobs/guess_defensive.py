@@ -437,9 +437,23 @@ def stat_index_all_no_use(tmp_datetime):
 
 def defensive_main(self):
     """
+    总体思路:
+    由于6, 7和当前股价有关，所以肯定是放在最后的
+    2, 4依赖pro接口，所以作为第二步
+    1, 3, 5使用普通接口的数据即可分析，所以作为第一个里程碑
+
+    里程碑1: 获取符合1, 3, 5的公司列表，本周完成。 今后每年运行一次
+    里程碑2: 使用列表，再过滤掉不符合2, 4的公司。 今后每年运行一次
+    里程碑3: 根据当前股价，计算符合6，7的公司，今后每周三运行一次
+
+    每周将符合条件的股票，以邮件的方式发到我的qq邮箱
+
+
     1. 适当的企业规模。工业企业年销售额不低于1亿美元(8亿人民币左右)；公用事业企业，总资产不低于5000万美元(4亿人民币左右)
 
-    http://tushare.org/fundamental.html
+    https://tushare.pro/document/2?doc_id=79
+    按照官方建议，都改用pro接口吧: https://tushare.pro/document/2?doc_id=79
+
 
     1.1 总资产totalAssets(万元) 在表ts_stock_basics,
         考虑通货膨胀，这里总资产暂时设置为40亿人民币
@@ -455,18 +469,33 @@ def defensive_main(self):
         3年的sql方法: select code, name from ts_stock_profit where (year=2017 or year=2016 or year=2015) AND business_income>8000 group by code having count(distinct year) = 3;
 
     2. 足够强劲的财务状况。工业企业流动资产应该至少是流动负债的2倍，且长期债务不应该超过流动资产净额，即"营运资本"。公用事业企业，负债不应该超过股权的两倍。
+        资产负债表: https://tushare.pro/document/2?doc_id=36
+        流动负债合计字段: total_cur_liab	float	流动负债合计
+        负债合计字段:   total_liab	float	负债合计
+        balancesheet只能获取单只股票的信息，所以放到最后作为验证
 
-        TODO 流动资产在stock_basics里面，
+        TODO 流动资产在stock_basics里面，liu
 
     3. 利润的稳定性，过去10年中，普通股每年都有一定的利润。
+        每股收益 esp
 
     4. 股息记录, 至少有20年连续支付股息的记录。A股历史较短，减小到10年
+        分红送股数据: https://tushare.pro/document/2?doc_id=103
 
     5. 过去10年内，每股利润的增长至少要达到三分之一(期初与期末使用三年平均数)
+        net_profits,净利润
 
     6. 适度的市盈率，当期股价不应该高于过去3年平均利润的15倍
+        股价比较动态, 这个指标要每周跑一次了。
 
     7. 适度的股价资产比
+        当期股价不应该超过最后报告的资产账面值的1.5倍。根据经验法则，我们建议，市盈率与价格账面值之比的乘积不应该超过22.5.
+        (例如 市盈率15, 1.5倍的价格账面值; 9倍的市盈率和2.5倍的资产价值)
+        资产账面值:
+        《国际评估准则》指出，企业的账面价值,
+        是企业资产负债表上体现的企业全部资产(扣除折旧、损耗和摊销)与企业全部负债之间的差额，与账面资产、净值和股东权益是同义的。
+
+        账面价值 = total_assets - total_liab
 
 
     """
