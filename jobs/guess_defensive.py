@@ -444,8 +444,8 @@ def defensive_main():
     2, 4依赖pro接口，所以作为第二步
     1, 3, 5使用普通接口的数据即可分析，所以作为第一个里程碑
 
-    里程碑1: 获取符合1, 3, 5的公司列表，本周完成。 今后每年运行一次
-    里程碑2: 使用列表，再过滤掉不符合2, 4的公司。 今后每年运行一次
+    里程碑1: 获取符合1, 3, 4, 5的公司列表，本周完成。 今后每年运行一次
+    里程碑2: 使用列表，再过滤掉不符合2的公司。 今后每年运行一次
     里程碑3: 根据当前股价，计算符合6，7的公司，今后每周三运行一次
 
     每周将符合条件的股票，以邮件的方式发到我的qq邮箱
@@ -506,7 +506,7 @@ def defensive_main():
     SELECT `code`, `name` FROM ts_stock_profit
     WHERE (`year`=2017 or `year`=2016 or `year`=2015) AND `business_income`>8000 AND
         `code` in (SELECT `code` from ts_stock_basics WHERE `totalAssets` > 400000 AND
-            `code` in (SELECT `code` FROM ts_stock_report WHERE `year`<2018 and `year`>=2008 AND `eps`>0
+            `code` in (SELECT `code` FROM ts_stock_report WHERE `year`<2018 and `year`>=2008 AND `eps`>0 and `distrib` is not NULL
                 GROUP by `code` HAVING count(distinct `year`) >= 10
             )
         )
