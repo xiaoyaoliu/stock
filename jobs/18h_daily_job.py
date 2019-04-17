@@ -69,7 +69,7 @@ def stat_stock_basics(tmp_datetime):
     if not data is None and len(data) > 0:
         # data = data.drop_duplicates(subset="code", keep="last")
         data.head(n=1)
-        common.insert_db(data, "ts_stock_basics", False, "`totalAssets`,`code`")
+        common.insert_db(data, "ts_stock_basics", False, "`code`,`name`")
     else:
         print("no data . stock_basics")
 
@@ -147,6 +147,6 @@ if __name__ == '__main__':
     # time.sleep(5)  # 停止5秒
     # tmp_datetime = common.run_with_args(stat_today_all)
     # time.sleep(5)  # 停止5秒
-    # tmp_datetime = common.run_with_args(stat_stock_basics)
+    tmp_datetime = common.run_with_args(stat_stock_basics)
     # tmp_datetime = common.run_with_args(stat_stock_profit)
-    tmp_datetime = common.run_with_args(stat_stock_report)
+    # tmp_datetime = common.run_with_args(stat_stock_report)
