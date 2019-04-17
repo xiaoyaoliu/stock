@@ -106,6 +106,39 @@ def stat_stock_profit(tmp_datetime, max_year=18):
 
         time.sleep(5)  # 停止5秒
 
+def stat_stock_report(tmp_datetime, max_year=11):
+    """
+    以后每年7月份取一下上年的年报即可，历史数据不必再取
+    经验: 19年4月份取18年的年报是不全的，所以延到7月取
+    """
+    cur_year = int((tmp_datetime).strftime("%Y"))
+    # cur_year = 2005
+    i = cur_year - max_year
+    # i = 2001
+    MAX_RETRY_TIME = 3
+    retry_time = 0
+    while i < cur_year:
+        try:
+            data = ts.get_report_data(i, 4)
+        except IOError:
+            data = None
+        if not data is None and len(data) > 0:
+            print("\nyear done", i)
+            # data = data.drop_duplicates(subset="code", keep="last")
+            data.insert(0, "year", [i] * len(data))
+            data.head(n=1)
+            common.insert_db(data, "ts_stock_report", False, "`code`,`name`")
+            i += 1
+            retry_time = 0
+        else:
+            print("\nno data . stock_report year", i)
+            retry_time += 1
+            if retry_time > MAX_RETRY_TIME:
+                i += 1
+                retry_time = 0
+
+        time.sleep(5)  # 停止5秒
+
 
 # main函数入口
 if __name__ == '__main__':
@@ -116,3 +149,4 @@ if __name__ == '__main__':
     # time.sleep(5)  # 停止5秒
     # tmp_datetime = common.run_with_args(stat_stock_basics)
     # tmp_datetime = common.run_with_args(stat_stock_profit)
+    tmp_datetime = common.run_with_args(stat_stock_report)
