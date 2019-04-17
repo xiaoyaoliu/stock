@@ -437,7 +437,7 @@ def stat_index_all_no_use(tmp_datetime):
     # 进行左连接.
     # tmp = pd.merge(tmp, tmp2, on=['company_id'], how='left')
 
-def defensive_main(self):
+def defensive_main():
     """
     总体思路:
     由于6, 7和当前股价有关，所以肯定是放在最后的
