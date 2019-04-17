@@ -94,7 +94,7 @@ def stat_stock_profit(tmp_datetime, max_year=18):
             # data = data.drop_duplicates(subset="code", keep="last")
             data.insert(0, "year", [i] * len(data))
             data.head(n=1)
-            common.insert_db(data, "ts_stock_profit", False, "`code`,`name`")
+            common.insert_db(data, "ts_stock_profit", False, "`year`,`code`")
             i += 1
             retry_time = 0
         else:
@@ -127,7 +127,7 @@ def stat_stock_report(tmp_datetime, max_year=11):
             # data = data.drop_duplicates(subset="code", keep="last")
             data.insert(0, "year", [i] * len(data))
             data.head(n=1)
-            common.insert_db(data, "ts_stock_report", False, "`code`,`name`")
+            common.insert_db(data, "ts_stock_report", False, "`year`,`code`")
             i += 1
             retry_time = 0
         else:
@@ -147,6 +147,6 @@ if __name__ == '__main__':
     # time.sleep(5)  # 停止5秒
     # tmp_datetime = common.run_with_args(stat_today_all)
     # time.sleep(5)  # 停止5秒
-    tmp_datetime = common.run_with_args(stat_stock_basics)
+    # tmp_datetime = common.run_with_args(stat_stock_basics)
     # tmp_datetime = common.run_with_args(stat_stock_profit)
-    # tmp_datetime = common.run_with_args(stat_stock_report)
+    tmp_datetime = common.run_with_args(stat_stock_report)
