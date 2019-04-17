@@ -448,6 +448,8 @@ def defensive_main():
     里程碑2: 使用列表，再过滤掉不符合2的公司。 今后每年运行一次
     里程碑3: 根据当前股价，计算符合6，7的公司，今后每周三运行一次
 
+    单元测试: 以2018年手动确认的结果为测试用例
+
     每周将符合条件的股票，以邮件的方式发到我的qq邮箱
 
 
@@ -502,12 +504,12 @@ def defensive_main():
 
     """
 
-    # 看起来第一版的分红数据有问题，连续10年分红的企业不全:例如 恒瑞医药
+    # 看起来第一版的分红数据有问题，连续10年分红且盈利的企业不全:例如 恒瑞医药
     sql_1 = """
     SELECT `code`, `name` FROM ts_stock_profit
     WHERE (`year`=2017 or `year`=2016 or `year`=2015) AND `business_income`>8000 AND
         `name` in (SELECT `name` from ts_stock_basics WHERE `totalAssets` > 400000 AND
-            `code` in (SELECT `code` FROM ts_stock_report WHERE `year`<2019 and `year`>=2008 AND `eps`>0 and `distrib` is not NULL GROUP by `code` HAVING count(distinct `year`) >= 10
+            `code` in (SELECT `code` FROM ts_stock_report WHERE `year`<2018 and `year`>=2008 AND `eps`>0 and `distrib` is not NULL GROUP by `code` HAVING count(distinct `year`) >= 10
             )
         )
     GROUP by `code`
