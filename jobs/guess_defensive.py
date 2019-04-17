@@ -499,10 +499,20 @@ def defensive_main(self):
 
 
     """
-    import tushare as ts
-    data = ts.get_stock_basics()
-    pass
 
+    sql_1 = """
+    SELECT `code`, `name` FROM ts_stock_profit
+    WHERE (`year`=2017 or `year`=2016 or `year`=2015) AND `business_income`>8000 AND
+        `code` in (SELECT `code` from ts_stock_basics WHERE `totalAssets` > 400000)
+    GROUP by `code`
+    HAVING count(distinct `year`) = 3;
+"""
+
+
+    data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
+    data = data.drop_duplicates(subset="code", keep="last")
+    print("######## len data ########:", len(data))
+    print(data)
 
 # main函数入口
 if __name__ == '__main__':
