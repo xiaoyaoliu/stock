@@ -505,7 +505,11 @@ def defensive_main():
     sql_1 = """
     SELECT `code`, `name` FROM ts_stock_profit
     WHERE (`year`=2017 or `year`=2016 or `year`=2015) AND `business_income`>8000 AND
-        `code` in (SELECT `code` from ts_stock_basics WHERE `totalAssets` > 400000)
+        `code` in (SELECT `code` from ts_stock_basics WHERE `totalAssets` > 400000 AND
+            `code` in (SELECT `code` FROM ts_stock_profit WHERE `year`<2018 and `year`>=2008 AND `esp`>0
+                GROUP by `code` HAVING count(distinct `year`) >= 10
+            )
+        )
     GROUP by `code`
     HAVING count(distinct `year`) = 3;
 """
