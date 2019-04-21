@@ -149,18 +149,29 @@ def stat_pro_basics(tmp_datetime):
     else:
         print("no data . stock_basics")
 
-def stat_fina_indicator(tmp_datatime):
+def stat_fina_indicator(tmp_datatime, max_year=11):
     sql_1 = """
     SELECT `ts_code` FROM ts_pro_basics
     """
     data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
     data = data.drop_duplicates(subset="ts_code", keep="last")
     print("######## len data ########:", len(data))
-    # print(dir(data))
-    dir(data.ts_code)
-    for i in data.ts_code:
-        print(i)
+    pro = ts.pro_api()
+    cur_year = int((tmp_datetime).strftime("%Y"))
+    start_year = cur_year - max_year
+    start_date = "%s1231" % start_year
 
+    for ts_code in data.ts_code:
+        try:
+            data = pro.fina_indicator(ts_code=ts_code, start_date=start_date)
+        except IOError:
+            data = None
+        if not data is None and len(data) > 0:
+            print("\ndone", ts_code)
+            data.head(n=1)
+            common.insert_db(data, "ts_pro_fina_indicator", False, "`ts_code`,`end_date`")
+        else:
+            print("\nno data . stock_report year", ts_code)
 
 
 # main函数入口
