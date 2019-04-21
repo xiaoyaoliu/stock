@@ -149,7 +149,7 @@ def stat_pro_basics(tmp_datetime):
     else:
         print("no data . stock_basics")
 
-def stat_fina_indicator(tmp_datatime, max_year=11):
+def stat_fina_indicator(tmp_datetime, max_year=11):
     sql_1 = """
     SELECT `ts_code` FROM ts_pro_basics
     """
