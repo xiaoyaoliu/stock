@@ -11,6 +11,7 @@ import pandas as pd
 import tushare as ts
 from sqlalchemy.types import NVARCHAR
 from sqlalchemy import inspect
+import sqlalchemy
 import datetime
 
 """
@@ -169,7 +170,10 @@ def stat_fina_indicator(tmp_datetime, max_year=11):
         if not data is None and len(data) > 0:
             print("\ndone", ts_code)
             data.head(n=1)
-            common.insert_db(data, "ts_pro_fina_indicator", False, "`ts_code`,`end_date`")
+            try:
+                common.insert_db(data, "ts_pro_fina_indicator", False, "`ts_code`,`end_date`")
+            except sqlalchemy.exc.IntegrityError:
+                pass
         else:
             print("\nno data . stock_report year", ts_code)
         time.sleep(1)
