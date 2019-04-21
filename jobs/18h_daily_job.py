@@ -170,6 +170,7 @@ def stat_fina(tmp_datetime, method, max_year=11):
         if not data is None and len(data) > 0:
             print("\ndone", ts_code)
             data.head(n=1)
+            data = data.drop_duplicates(subset=["ts_code", 'end_date'], keep="last")
             try:
                 common.insert_db(data, "ts_pro_%s" % method, False, "`ts_code`,`end_date`")
             except sqlalchemy.exc.IntegrityError:
