@@ -10,7 +10,7 @@ import sys
 import os
 import MySQLdb
 from sqlalchemy import create_engine
-from sqlalchemy.types import NVARCHAR
+from sqlalchemy.types import NVARCHAR, REAL, BIGINT
 from sqlalchemy import inspect
 import tushare as ts
 import pandas as pd
@@ -63,12 +63,22 @@ def insert_other_db(to_db, data, table_name, write_index, primary_keys):
     insp = inspect(engine_mysql)
     col_name_list = data.columns.tolist()
     # 如果有索引，把索引增加到varchar上面。
-    if write_index:
+    # if write_index:
         # 插入到第一个位置：
-        col_name_list.insert(0, data.index.name)
+        # col_name_list.insert(0, data.index.name)
     print(col_name_list)
+    dtype = {}
+    assert len(data.dtypes) == len(data.columns)
+    for i, col_name in enumerate(col_name_list):
+        if pd.api.types.is_float_dtype(data.dtypes[i]):
+            dtype[col_name] = REAL
+        elif pd.api.types.is_integer_dtype(data.dtypes[i]):
+            dtype[col_name] = BIGINT
+        else:
+            dtype[col_name] = NVARCHAR(length=255)
+
     data.to_sql(name=table_name, con=engine_mysql, schema=to_db, if_exists='append',
-                dtype={col_name: NVARCHAR(length=255) for col_name in col_name_list}, index=write_index)
+                dtype=dtype, index=write_index)
     # 判断是否存在主键
     if insp.get_primary_keys(table_name) == []:
         with engine_mysql.connect() as con:
