@@ -150,7 +150,7 @@ def stat_pro_basics(tmp_datetime):
     else:
         print("no data . stock_basics")
 
-def stat_fina_indicator(tmp_datetime, max_year=11):
+def stat_fina(tmp_datetime, method, max_year=11):
     sql_1 = """
     SELECT `ts_code` FROM ts_pro_basics
     """
@@ -164,20 +164,36 @@ def stat_fina_indicator(tmp_datetime, max_year=11):
 
     for ts_code in data.ts_code:
         try:
-            data = pro.fina_indicator(ts_code=ts_code, start_date=start_date)
+            data = getattr(pro, method)(ts_code=ts_code, start_date=start_date)
         except IOError:
             data = None
         if not data is None and len(data) > 0:
             print("\ndone", ts_code)
             data.head(n=1)
             try:
-                common.insert_db(data, "ts_pro_fina_indicator", False, "`ts_code`,`end_date`")
+                common.insert_db(data, "ts_pro_%s" % method, False, "`ts_code`,`end_date`")
             except sqlalchemy.exc.IntegrityError:
                 pass
         else:
-            print("\nno data . stock_report year", ts_code)
+            print("\nno data . method=%s ts_code=%s" % (method, ts_code))
+        # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
         time.sleep(1)
 
+def stat_fina_indicator(tmp_datetime):
+    stat_fina(tmp_datetime, "fina_indicator", 11)
+
+
+def stat_income(tmp_datetime):
+    stat_fina(tmp_datetime, "income", 11)
+
+
+def stat_balancesheet(tmp_datetime):
+    stat_fina(tmp_datetime, "balancesheet", 11)
+
+
+def stat_dividend(tmp_datetime):
+    # pass
+    stat_fina(tmp_datetime, "dividend", 11)
 
 # main函数入口
 if __name__ == '__main__':
@@ -189,4 +205,7 @@ if __name__ == '__main__':
     # tmp_datetime = common.run_with_args(stat_stock_basics)
     # tmp_datetime = common.run_with_args(stat_stock_profit)
     # tmp_datetime = common.run_with_args(stat_stock_report)
-    common.run_with_args(stat_fina_indicator)
+    # common.run_with_args(stat_fina_indicator)
+    common.run_with_args(stat_income)
+    common.run_with_args(stat_balancesheet)
+    common.run_with_args(stat_dividend)
