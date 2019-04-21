@@ -172,6 +172,7 @@ def stat_fina_indicator(tmp_datetime, max_year=11):
             common.insert_db(data, "ts_pro_fina_indicator", False, "`ts_code`,`end_date`")
         else:
             print("\nno data . stock_report year", ts_code)
+        time.sleep(1)
 
 
 # main函数入口
