@@ -154,7 +154,7 @@ def stat_fina_indicator(tmp_datatime):
     SELECT `ts_code` FROM ts_pro_basics
     """
     data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
-    data = data.drop_duplicates(subset="code", keep="last")
+    data = data.drop_duplicates(subset="ts_code", keep="last")
     print("######## len data ########:", len(data))
     for i in data:
         print(i)
