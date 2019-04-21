@@ -75,7 +75,7 @@ def insert_other_db(to_db, data, table_name, write_index, primary_keys):
         elif pd.api.types.is_integer_dtype(data.dtypes[i]):
             dtype[col_name] = BIGINT
         else:
-            dtype[col_name] = NVARCHAR(length=255)
+            dtype[col_name] = NVARCHAR(length=127)
 
     data.to_sql(name=table_name, con=engine_mysql, schema=to_db, if_exists='append',
                 dtype=dtype, index=write_index)

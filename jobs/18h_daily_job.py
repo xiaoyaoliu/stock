@@ -206,6 +206,6 @@ if __name__ == '__main__':
     # tmp_datetime = common.run_with_args(stat_stock_profit)
     # tmp_datetime = common.run_with_args(stat_stock_report)
     # common.run_with_args(stat_fina_indicator)
-    common.run_with_args(stat_income)
     common.run_with_args(stat_balancesheet)
+    common.run_with_args(stat_income)
     common.run_with_args(stat_dividend)
