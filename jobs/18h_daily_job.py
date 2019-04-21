@@ -139,6 +139,16 @@ def stat_stock_report(tmp_datetime, max_year=11):
 
         time.sleep(5)  # 停止5秒
 
+def stat_pro_basics(tmp_datetime):
+    pro = ts.pro_api()
+    data = pro.stock_basic(list_status='L')
+    if not data is None and len(data) > 0:
+        # data = data.drop_duplicates(subset="code", keep="last")
+        data.head(n=1)
+        common.insert_db(data, "ts_pro_basics", False, "`ts_code`")
+    else:
+        print("no data . stock_basics")
+
 
 # main函数入口
 if __name__ == '__main__':
@@ -149,4 +159,5 @@ if __name__ == '__main__':
     # time.sleep(5)  # 停止5秒
     # tmp_datetime = common.run_with_args(stat_stock_basics)
     # tmp_datetime = common.run_with_args(stat_stock_profit)
-    tmp_datetime = common.run_with_args(stat_stock_report)
+    # tmp_datetime = common.run_with_args(stat_stock_report)
+    common.run_with_args(stat_pro_basics)

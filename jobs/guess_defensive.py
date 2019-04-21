@@ -504,7 +504,7 @@ def defensive_main():
 
     """
 
-    # 看起来第一版的分红数据有问题，连续10年分红且盈利的企业不全:例如 恒瑞医药
+    # 看起来第一版的分红数据有问题，连续10年分红且盈利的企业不全:例如 隧道股份
     sql_1 = """
     SELECT `code`, `name` FROM ts_stock_profit
     WHERE (`year`=2017 or `year`=2016 or `year`=2015) AND `business_income`>8000 AND
