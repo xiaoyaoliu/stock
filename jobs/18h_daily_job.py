@@ -149,6 +149,17 @@ def stat_pro_basics(tmp_datetime):
     else:
         print("no data . stock_basics")
 
+def stat_fina_indicator(tmp_datatime):
+    sql_1 = """
+    SELECT `ts_code` FROM ts_pro_basics
+    """
+    data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
+    data = data.drop_duplicates(subset="code", keep="last")
+    print("######## len data ########:", len(data))
+    for i in data:
+        print(i)
+
+
 
 # main函数入口
 if __name__ == '__main__':
@@ -160,4 +171,4 @@ if __name__ == '__main__':
     # tmp_datetime = common.run_with_args(stat_stock_basics)
     # tmp_datetime = common.run_with_args(stat_stock_profit)
     # tmp_datetime = common.run_with_args(stat_stock_report)
-    common.run_with_args(stat_pro_basics)
+    common.run_with_args(stat_fina_indicator)
