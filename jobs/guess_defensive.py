@@ -463,6 +463,8 @@ def defensive_main():
         考虑通货膨胀，这里总资产暂时设置为40亿人民币
         2019年4月10日，A股共3609家上市公司，总资产超过40亿的公司有1819家，占比50.4%
         sql方法: SELECT name from ts_stock_basics WHERE totalAssets > 400000;
+        balancesheet.total_assets
+        pro方法: select ts_code from ts_pro_balancesheet where end_date = "20181231" and total_assets > 4010001000 ;
     1.2 年销售额，使用business_income, 营业收入(百万元)
         考虑通货膨胀，这里暂时设置为80亿人民币，且最近3年都超过80亿人民币，每个季度的财报不低于20亿人民币
 
@@ -471,23 +473,35 @@ def defensive_main():
 
         2015 ～2017，连续3年营收大于80亿的，只有431家（共3558家），占12%
         3年的sql方法: select code, name from ts_stock_profit where (year=2017 or year=2016 or year=2015) AND business_income>8000 group by code having count(distinct year) = 3;
+        income.total_revenue >
+        pro方法: select ts_code from ts_pro_income where end_date > 20160101 and end_date < 20190101 and end_date like "%1231" and total_revenue>8010001000 group by ts_code having count(distinct year(end_date)) = 3;
 
-    2. 足够强劲的财务状况。工业企业流动资产应该至少是流动负债的2倍，且长期债务不应该超过流动资产净额，即"营运资本"。公用事业企业，负债不应该超过股权的两倍。
+
+    2. 足够强劲的财务状况。工业企业流动资产(total_cur_assets) 应该至少是流动负债的2倍，且长期债务不应该超过流动资产净额，即"营运资本"。公用事业企业，负债不应该超过股权的两倍。
         资产负债表: https://tushare.pro/document/2?doc_id=36
         流动负债合计字段: total_cur_liab	float	流动负债合计
         负债合计字段:   total_liab	float	负债合计
-        balancesheet只能获取单只股票的信息，所以放到最后作为验证
-
-        TODO 流动资产在stock_basics里面，liu
+        balancesheet
+        截至2019年4月24日, 负债率符合要求的公司有764家
+        select ts_code from ts_pro_balancesheet where end_date = "20181231" and total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0)) ;
 
     3. 利润的稳定性，过去10年中，普通股每年都有一定的利润。
         每股收益 esp
+        select ts_code from ts_pro_income where end_date > 20080101 and end_date < 20190101 and end_date like "%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10;
 
     4. 股息记录, 至少有20年连续支付股息的记录。A股历史较短，减小到10年
         分红送股数据: https://tushare.pro/document/2?doc_id=103
+        截至2019年4月24日, 2008~2018每年都分红的公司有549家, 549 / 3609 = 15.2%
+        select ts_code from ts_pro_dividend where end_date > 20080101 and end_date < 20190101 and cash_div_tax > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10;
+
 
     5. 过去10年内，每股利润的增长至少要达到三分之一(期初与期末使用三年平均数)
         net_profits,净利润
+        basic_eps: 每股收益应该是基本每股收益：是当期净利润除以当期在外发行的普通股的加权平均来确定，可以反应出来目前股本结构下的盈利能力。
+        diluted_eps: 而摊薄每股收益是把一些潜在有可能转化成上市公司股权的股票的加权平均股数都算进来了，比如可转股债，认股权证等。因为他们在未来有可能换成股票从而摊薄上市公司每股收益。
+
+         截至2019年4月24日, 2008~2018 diluted_eps增长超过三分之一的有504家, 504 / 3609 = 13.9%
+        select t_eps1.ts_code from (select ts_code, sum(diluted_eps) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(diluted_eps) as old_eps from ts_pro_income where end_date > 20080101 and end_date like "%1231" and end_date < 20110101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps) > 1.33;
 
     6. 适度的市盈率，当期股价不应该高于过去3年平均利润的15倍
         股价比较动态, 这个指标要每周跑一次了。
@@ -500,6 +514,11 @@ def defensive_main():
         是企业资产负债表上体现的企业全部资产(扣除折旧、损耗和摊销)与企业全部负债之间的差额，与账面资产、净值和股东权益是同义的。
 
         账面价值 = total_assets - total_liab
+
+        # 检查下你关心的列是不是double，改变你关心的列的类型
+        ALTER TABLE table_name MODIFY COLUMN column_name datatype;
+        查看当前类型:  show columns from ts_pro_fina_indicator;
+        例如: alter table ts_pro_fina_indicator modify column gross_margin REAL;
 
 
     """
@@ -516,6 +535,24 @@ def defensive_main():
     HAVING count(distinct `year`) = 3;
 """
 
+    sql_pro = """
+    select * from ts_pro_basics where
+
+    ts_code in (select ts_code from ts_pro_balancesheet where end_date = "20181231" and total_assets > 4010001000 and
+        ts_code in (
+            select ts_code from ts_pro_income where end_date > 20160101 and end_date < 20190101 and end_date like "%1231" and total_revenue>8000000000 group by ts_code having count(distinct year(end_date)) = 3 and
+            ts_code in (select ts_code from ts_pro_balancesheet where end_date = "20181231" and total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0)) and
+                ts_code in (select ts_code from ts_pro_income where end_date > 20080101 and end_date < 20190101 and end_date like "%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
+                    ts_code in (
+                        select ts_code from ts_pro_dividend where end_date > 20080101 and end_date < 20190101 and cash_div_tax > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
+                        ts_code in (select t_eps1.ts_code from (select ts_code, sum(diluted_eps) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(diluted_eps) as old_eps from ts_pro_income where end_date > 20080101 and end_date like "%1231" and end_date < 20110101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps) > 1.33
+                        )
+                    )
+                )
+            )
+        )
+    )
+"""
 
     data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
     data = data.drop_duplicates(subset="code", keep="last")
