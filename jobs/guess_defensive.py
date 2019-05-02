@@ -555,7 +555,9 @@ def defensive_main():
     sql_pro2 = """
     select * from ts_pro_basics where
     ts_code in (select ts_code from ts_pro_balancesheet where (end_date = "20181231" or end_date="20171231") and total_assets > 4010001000 and
-        ts_code in (select ts_code from ts_pro_balancesheet where (end_date = "20181231" or end_date="20171231") and total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0))
+        ts_code in (select ts_code from ts_pro_income where end_date > 20160101 and end_date < 20190101 and end_date like "%1231" and total_revenue>4010001000 group by ts_code having count(distinct year(end_date)) >= 2 and
+            ts_code in (select ts_code from ts_pro_balancesheet where (end_date = "20181231" or end_date="20171231") and total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0))
+            )
         )
     )
     """
