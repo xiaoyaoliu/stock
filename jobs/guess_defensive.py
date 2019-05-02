@@ -539,7 +539,7 @@ def defensive_main():
     select * from ts_pro_basics where
     ts_code in (select ts_code from ts_pro_balancesheet where end_date = "20181231" and total_assets > 4010001000 and
         ts_code in (
-            select ts_code from ts_pro_income where end_date > 20170101 and end_date < 20190101 and end_date like "%%1231" and total_revenue>810001000 group by ts_code having count(distinct year(end_date)) >= 2 and
+            select ts_code from ts_pro_income where end_date > 20170101 and end_date < 20190101 and end_date like "%%1231" and total_revenue>2010001000 group by ts_code having count(distinct year(end_date)) >= 2 and
             ts_code in (select ts_code from ts_pro_balancesheet where end_date = "20181231" and total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0)) and
                 ts_code in (select ts_code from ts_pro_income where end_date > 20070101 and end_date < 20190101 and end_date like "%%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
                     ts_code in (
