@@ -112,13 +112,13 @@ def stat_current_fina(tmp_datetime, method):
     SELECT `ts_code` FROM %s WHERE `end_date`='%s'
     """ % (table_name, cur_date)
     exist_data = pd.read_sql(sql=sql_exist, con=common.engine(), params=[])
-    print("[%s][mysql][%s]Begin: 已获取%s财报的公司共有%s家" % (tmp_datetime, table_name, cur_date, len(exist_data.ts_code)))
+    logging.info("[%s][mysql][%s]Begin: 已获取%s财报的公司共有%s家", tmp_datetime, table_name, cur_date, len(exist_data.ts_code))
 
     exist_set = set(exist_data.ts_code)
 
     new_code = []
 
-    for ts_code in basic_data.ts_code:
+    for i, ts_code in enumerate(basic_data.ts_code):
         if ts_code in exist_set:
             continue
         try:
@@ -126,7 +126,7 @@ def stat_current_fina(tmp_datetime, method):
         except IOError:
             data = None
         if not data is None and len(data) > 0:
-            print("Table %s: insert %s, %s / %s" % (table_name, ts_code, len(exist_data) + len(new_code), len(basic_data)))
+            logging.info("Table %s: insert %s, %s(%s) / %s", table_name, ts_code, i, len(exist_data) + len(new_code), len(basic_data))
             data.head(n=1)
             data = data.drop_duplicates(subset=["ts_code", 'end_date'], keep="last")
             try:
