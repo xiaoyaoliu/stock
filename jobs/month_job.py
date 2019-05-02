@@ -95,9 +95,8 @@ def stat_current_fina(tmp_datetime, method):
     sql_1 = """
     SELECT `ts_code` FROM ts_pro_basics
     """
-    data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
-    data = data.drop_duplicates(subset="ts_code", keep="last")
-    print("######## len data ########:", len(data))
+    basic_data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
+    basic_data = basic_data.drop_duplicates(subset="ts_code", keep="last")
     pro = ts.pro_api()
     # 每年都取上一年的财报
     cur_year = int((tmp_datetime).strftime("%Y")) - 1
@@ -113,7 +112,7 @@ def stat_current_fina(tmp_datetime, method):
 
     new_code = []
 
-    for ts_code in data.ts_code:
+    for ts_code in basic_data.ts_code:
         if ts_code in exist_set:
             continue
         try:
@@ -121,7 +120,7 @@ def stat_current_fina(tmp_datetime, method):
         except IOError:
             data = None
         if not data is None and len(data) > 0:
-            print("\ndone %s, %s / %s" % (ts_code, len(exist_data) + len(new_code), len(data)))
+            print("\ndone %s, %s / %s" % (ts_code, len(exist_data) + len(new_code), len(basic_data)))
             data.head(n=1)
             data = data.drop_duplicates(subset=["ts_code", 'end_date'], keep="last")
             try:
