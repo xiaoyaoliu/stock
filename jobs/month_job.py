@@ -41,7 +41,8 @@ def stat_pro_basics(tmp_datetime):
         data = data.drop_duplicates(subset="ts_code", keep="last")
         data.head(n=1)
         data = data[-data['ts_code'].isin(exist_set)]
-        common.insert_db(data, "ts_pro_basics", False, "`ts_code`")
+        if len(data) > 0
+            common.insert_db(data, "ts_pro_basics", False, "`ts_code`")
     else:
         print("no data . stock_basics")
 
