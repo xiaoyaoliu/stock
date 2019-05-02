@@ -5,9 +5,29 @@ import sys
 sys.path.append("/data/stock/")
 
 import logging
-logging.basicConfig(filename='/data/logs/month_job_py.log',level=logging.DEBUG)
-# logging.debug('This message should go to the log file')
-# logging.warning('And this, too')
+# logging.basicConfig(filename='',level=logging.DEBUG)
+# create logger
+logger = logging.getLogger('month_job')
+logger.setLevel(logging.DEBUG)
+
+
+# create formatter
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+# add formatter to ch
+ch.setFormatter(formatter)
+
+# 文件日志
+file_handler = logging.FileHandler("/data/logs/month_job_py.log")
+file_handler.setFormatter(formatter)  # 可以通过setFormatter指定输出格式
+file_handler.setLevel(logging.DEBUG)
+
+# add ch to logger
+logger.addHandler(ch)
+logger.addHandler(file_handler)
 
 import libs.common as common
 import sys
@@ -49,7 +69,7 @@ def stat_pro_basics(tmp_datetime):
         if len(data) > 0:
             common.insert_db(data, "ts_pro_basics", False, "`ts_code`")
     else:
-        print("no data . stock_basics")
+        logger.debug("no data . stock_basics")
 
 def stat_fina(tmp_datetime, method, max_year=11):
     sql_1 = """
@@ -57,7 +77,7 @@ def stat_fina(tmp_datetime, method, max_year=11):
     """
     data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
     data = data.drop_duplicates(subset="ts_code", keep="last")
-    print("######## len data ########:", len(data))
+    logger.debug("######## len data ########: %s", len(data))
     pro = ts.pro_api()
     cur_year = int((tmp_datetime).strftime("%Y"))
     start_year = cur_year - max_year
@@ -69,7 +89,7 @@ def stat_fina(tmp_datetime, method, max_year=11):
         except IOError:
             data = None
         if not data is None and len(data) > 0:
-            print("\ndone", ts_code)
+            logger.info("\ndone", ts_code)
             data.head(n=1)
             data = data.drop_duplicates(subset=["ts_code", 'end_date'], keep="last")
             try:
@@ -77,7 +97,7 @@ def stat_fina(tmp_datetime, method, max_year=11):
             except sqlalchemy.exc.IntegrityError:
                 pass
         else:
-            print("\nno data . method=%s ts_code=%s" % (method, ts_code))
+            logger.debug("\nno data . method=%s ts_code=%s", method, ts_code)
         # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
         time.sleep(1)
 
@@ -112,7 +132,7 @@ def stat_current_fina(tmp_datetime, method):
     SELECT `ts_code` FROM %s WHERE `end_date`='%s'
     """ % (table_name, cur_date)
     exist_data = pd.read_sql(sql=sql_exist, con=common.engine(), params=[])
-    logging.info("[%s][mysql][%s]Begin: 已获取%s财报的公司共有%s家", tmp_datetime, table_name, cur_date, len(exist_data.ts_code))
+    logger.info("[%s][mysql][%s]Begin: 已获取%s财报的公司共有%s家", tmp_datetime, table_name, cur_date, len(exist_data.ts_code))
 
     exist_set = set(exist_data.ts_code)
 
@@ -126,7 +146,7 @@ def stat_current_fina(tmp_datetime, method):
         except IOError:
             data = None
         if not data is None and len(data) > 0:
-            logging.info("Table %s: insert %s, %s(%s) / %s", table_name, ts_code, i, len(exist_data) + len(new_code), len(basic_data))
+            logger.info("Table %s: insert %s, %s(%s) / %s", table_name, ts_code, i, len(exist_data) + len(new_code), len(basic_data))
             data.head(n=1)
             data = data.drop_duplicates(subset=["ts_code", 'end_date'], keep="last")
             try:
@@ -135,11 +155,11 @@ def stat_current_fina(tmp_datetime, method):
             except sqlalchemy.exc.IntegrityError:
                 pass
         else:
-            print("no data . method=%s ts_code=%s" % (method, ts_code))
+            logger.debug("no data . method=%s ts_code=%s", method, ts_code)
         # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
         time.sleep(1)
 
-    print("[%s][mysql][%s]End: 新发布%s财报的公司共有%s家" % (tmp_datetime, table_name, cur_date, len(new_code)))
+    logger.info("[%s][mysql][%s]End: 新发布%s财报的公司共有%s家", tmp_datetime, table_name, cur_date, len(new_code))
 
 def stat_fina_indicator_current(tmp_datetime):
     stat_current_fina(tmp_datetime, "fina_indicator")
@@ -183,5 +203,5 @@ def update_current_year():
 # main函数入口
 if __name__ == '__main__':
     # 使用方法传递。
-    logging.info('begin')
+    logger.info('begin')
     update_current_year()
