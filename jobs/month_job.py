@@ -25,11 +25,22 @@ http://tushare.org/trading.html#id2
 
 
 def stat_pro_basics(tmp_datetime):
+    """
+    Pandas：让你像写SQL一样做数据分析（一）: https://www.cnblogs.com/en-heng/p/5630849.html
+    """
     pro = ts.pro_api()
     data = pro.stock_basic(list_status='L')
+    sql_1 = """
+    SELECT `ts_code` FROM ts_pro_basics
+    """
+    exist_data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
+    exist_data = exist_data.drop_duplicates(subset="ts_code", keep="last")
+    exist_set = set(exist_data.ts_code)
+
     if not data is None and len(data) > 0:
-        # data = data.drop_duplicates(subset="code", keep="last")
+        data = data.drop_duplicates(subset="ts_code", keep="last")
         data.head(n=1)
+        data = data[-data['ts_code'].isin(exist_set)]
         common.insert_db(data, "ts_pro_basics", False, "`ts_code`")
     else:
         print("no data . stock_basics")
@@ -96,7 +107,7 @@ def stat_current_fina(tmp_datetime, method):
     SELECT `ts_code` FROM %s WHERE `end_date`='%s'
     """ % (table_name, cur_date)
     exist_data = pd.read_sql(sql=sql_exist, con=common.engine(), params=[])
-    print("[%s][mysql][%s]已获取%s财报的公司共有%s家" % (tmp_datetime, table_name, cur_date, len(exist_data.ts_code)))
+    print("[%s][mysql][%s]Begin: 已获取%s财报的公司共有%s家" % (tmp_datetime, table_name, cur_date, len(exist_data.ts_code)))
 
     exist_set = set(exist_data.ts_code)
 
@@ -110,7 +121,7 @@ def stat_current_fina(tmp_datetime, method):
         except IOError:
             data = None
         if not data is None and len(data) > 0:
-            print("\ndone", ts_code)
+            print("\ndone %s, %s / %s" % (ts_code, len(exist_data) + len(new_code), len(data)))
             data.head(n=1)
             data = data.drop_duplicates(subset=["ts_code", 'end_date'], keep="last")
             try:
@@ -123,9 +134,7 @@ def stat_current_fina(tmp_datetime, method):
         # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
         time.sleep(1)
 
-    print("[%s][mysql][%s]新发布%s财报的公司共有%s家" % (tmp_datetime, table_name, cur_date, len(new_code)))
-    if new_code:
-        print(new_code)
+    print("[%s][mysql][%s]End: 新发布%s财报的公司共有%s家" % (tmp_datetime, table_name, cur_date, len(new_code)))
 
 def stat_fina_indicator_current(tmp_datetime):
     stat_current_fina(tmp_datetime, "fina_indicator")

@@ -66,7 +66,7 @@ def insert_other_db(to_db, data, table_name, write_index, primary_keys):
     # if write_index:
         # 插入到第一个位置：
         # col_name_list.insert(0, data.index.name)
-    print(col_name_list)
+    # print(col_name_list)
     dtype = {}
     assert len(data.dtypes) == len(data.columns)
     for i, col_name in enumerate(col_name_list):
