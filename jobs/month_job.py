@@ -4,6 +4,11 @@
 import sys
 sys.path.append("/data/stock/")
 
+import logging
+logging.basicConfig(filename='/data/logs/month_job_py.log',level=logging.DEBUG)
+# logging.debug('This message should go to the log file')
+# logging.warning('And this, too')
+
 import libs.common as common
 import sys
 import time
@@ -178,4 +183,5 @@ def update_current_year():
 # main函数入口
 if __name__ == '__main__':
     # 使用方法传递。
+    logging.info('begin')
     update_current_year()
