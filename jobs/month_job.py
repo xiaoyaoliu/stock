@@ -155,11 +155,12 @@ def stat_current_fina(tmp_datetime, method):
             exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
             date_set = set(exist_dates.end_date)
             data = data[-data['end_date'].isin(date_set)]
-            try:
-                common.insert_db(data, table_name, False, "`ts_code`,`end_date`")
-                new_code.append(ts_code)
-            except sqlalchemy.exc.IntegrityError:
-                pass
+            if len(data) > 0:
+                try:
+                    common.insert_db(data, table_name, False, "`ts_code`,`end_date`")
+                    new_code.append(ts_code)
+                except sqlalchemy.exc.IntegrityError:
+                    pass
         else:
             logger.debug("no data . method=%s ts_code=%s", method, ts_code)
         # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
