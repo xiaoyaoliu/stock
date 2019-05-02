@@ -149,6 +149,12 @@ def stat_current_fina(tmp_datetime, method):
             logger.info("Table %s: insert %s, %s(%s) / %s", table_name, ts_code, i, len(exist_data) + len(new_code), len(basic_data))
             data.head(n=1)
             data = data.drop_duplicates(subset=["ts_code", 'end_date'], keep="last")
+            sql_date = """
+                SELECT `end_date` FROM %s WHERE `ts_code`='%s'
+                """ % (table_name, ts_code)
+            exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
+            date_set = set(exist_dates.end_date)
+            data = data[-data['end_date'].isin(date_set)]
             try:
                 common.insert_db(data, table_name, False, "`ts_code`,`end_date`")
                 new_code.append(ts_code)
