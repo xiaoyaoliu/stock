@@ -120,7 +120,7 @@ def stat_current_fina(tmp_datetime, method):
         except IOError:
             data = None
         if not data is None and len(data) > 0:
-            print("\ndone %s, %s / %s" % (ts_code, len(exist_data) + len(new_code), len(basic_data)))
+            print("Table %s: insert %s, %s / %s" % (table_name, ts_code, len(exist_data) + len(new_code), len(basic_data)))
             data.head(n=1)
             data = data.drop_duplicates(subset=["ts_code", 'end_date'], keep="last")
             try:
@@ -129,7 +129,7 @@ def stat_current_fina(tmp_datetime, method):
             except sqlalchemy.exc.IntegrityError:
                 pass
         else:
-            print("\nno data . method=%s ts_code=%s" % (method, ts_code))
+            print("no data . method=%s ts_code=%s" % (method, ts_code))
         # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
         time.sleep(1)
 
