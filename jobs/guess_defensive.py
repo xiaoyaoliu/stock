@@ -567,7 +567,7 @@ def defensive_main():
     )
     """
 
-    data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
+    data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
     data = data.drop_duplicates(subset="code", keep="last")
     print("######## len data ########:", len(data))
     print(data)
