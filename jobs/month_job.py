@@ -94,8 +94,8 @@ def stat_current_fina(tmp_datetime, method):
     table_name = "ts_pro_%s" % method
     sql_exist = """
     SELECT `ts_code` FROM %s WHERE `end_date`=%s
-    """
-    exist_data = pd.read_sql(sql=sql_exist, con=common.engine(), params=[table_name, cur_date])
+    """ % table_name
+    exist_data = pd.read_sql(sql=sql_exist, con=common.engine(), params=[cur_date])
     print("[%s][mysql][%s]已获取%s财报的公司共有%s家" % (tmp_datetime, table_name, cur_date, len(exist_data.ts_code)))
 
     exist_set = set(exist_data.ts_code)
