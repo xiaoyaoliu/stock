@@ -539,7 +539,7 @@ def defensive_main():
     select * from ts_pro_basics where
     ts_code in (select ts_code from ts_pro_balancesheet where end_date = "20181231" and total_assets > 4010001000 and
         ts_code in (
-            select ts_code from ts_pro_income where end_date > 20160101 and end_date < 20190101 and end_date like "%%1231" and total_revenue>4010001000 group by ts_code having count(distinct year(end_date)) >= 2 and
+            select ts_code from ts_pro_income where end_date > 20170101 and end_date < 20190101 and end_date like "%%1231" and total_revenue>810001000 group by ts_code having count(distinct year(end_date)) >= 2 and
             ts_code in (select ts_code from ts_pro_balancesheet where end_date = "20181231" and total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0)) and
                 ts_code in (select ts_code from ts_pro_income where end_date > 20070101 and end_date < 20190101 and end_date like "%%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
                     ts_code in (
@@ -552,22 +552,6 @@ def defensive_main():
         )
     )
 """
-    sql_pro2 = """
-    select * from ts_pro_basics where
-    ts_code in (select ts_code from ts_pro_balancesheet where (end_date = "20181231" or end_date="20171231") and total_assets > 4010001000 and
-        ts_code in (select ts_code from ts_pro_income where end_date > 20160101 and end_date < 20190101 and end_date like "%%1231" and total_revenue>4010001000 group by ts_code having count(distinct year(end_date)) >= 2 and
-            ts_code in (select ts_code from ts_pro_balancesheet where (end_date = "20181231" or end_date="20171231") and total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0)) and
-                ts_code in (select ts_code from ts_pro_income where end_date > 20070101 and end_date < 20190101 and end_date like "%%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
-                    ts_code in (
-                        select ts_code from ts_pro_dividend where end_date > 20070101 and end_date < 20190101 and cash_div_tax > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
-                        ts_code in (select t_eps1.ts_code from (select ts_code, sum(diluted_eps) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(diluted_eps) as old_eps from ts_pro_income where end_date > 20080101 and end_date like "%%1231" and end_date < 20110101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps) > 1.33
-                        )
-                    )
-                )
-            )
-        )
-    )
-    """
 
     data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
     data = data.drop_duplicates(subset="ts_code", keep="last")
