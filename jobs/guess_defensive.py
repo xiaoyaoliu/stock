@@ -550,7 +550,7 @@ def defensive_main():
                 )
             )
         )
-    ) ts_balancesheet on ts_pro_basics.ts_code == ts_balancesheet.ts_code
+    ) ts_balancesheet on ts_pro_basics.ts_code = ts_balancesheet.ts_code
 """
 
     data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
