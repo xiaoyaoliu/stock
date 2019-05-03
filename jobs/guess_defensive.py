@@ -536,8 +536,8 @@ def defensive_main():
 """
 
     sql_pro = """
-    select * from ts_pro_basics where
-    ts_code in (select ts_code from ts_pro_balancesheet where end_date = "20181231" and total_assets > 4010001000 and
+    select * from ts_pro_basics INNER JOIN
+    (select ts_code, (total_assets - total_liab) as ledger_asset from ts_pro_balancesheet where end_date = "20181231" and total_assets > 4010001000 and
         ts_code in (
             select ts_code from ts_pro_income where end_date > 20170101 and end_date < 20190101 and end_date like "%%1231" and total_revenue>4010001000 group by ts_code having count(distinct year(end_date)) >= 2 and
             ts_code in (select ts_code from ts_pro_balancesheet where end_date = "20181231" and total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0)) and
@@ -550,7 +550,7 @@ def defensive_main():
                 )
             )
         )
-    )
+    ) ts_balancesheet on ts_pro_basics.ts_code == ts_balancesheet.ts_code
 """
 
     data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
