@@ -496,6 +496,7 @@ def defensive_main():
 
 
     5. 过去10年内，每股利润的增长至少要达到三分之一(期初与期末使用三年平均数)
+        zx: 考虑到通货膨胀，利润增长需要达到50%
         net_profits,净利润
         basic_eps: 每股收益应该是基本每股收益：是当期净利润除以当期在外发行的普通股的加权平均来确定，可以反应出来目前股本结构下的盈利能力。
         diluted_eps: 而摊薄每股收益是把一些潜在有可能转化成上市公司股权的股票的加权平均股数都算进来了，比如可转股债，认股权证等。因为他们在未来有可能换成股票从而摊薄上市公司每股收益。
@@ -554,7 +555,8 @@ def defensive_main():
                 ts_code in (select ts_code from ts_pro_income where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
                     ts_code in (
                         select ts_code from ts_pro_dividend where end_date > 20090101 and end_date < 20190101 and (cash_div_tax > 0 or stk_div > 0) GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
-                        ts_code in (select t_eps1.ts_code from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%%1231" and end_date < 20120101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps) > 1.33
+                        ts_code in (select t_eps1.ts_code from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%%1231" and end_date < 20120101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and
+                        old_eps > 0 and (new_eps / old_eps) > 1.5
                         )
                     )
                 )
