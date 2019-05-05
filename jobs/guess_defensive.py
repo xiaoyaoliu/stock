@@ -520,7 +520,7 @@ def defensive_main():
         查看当前类型:  show columns from ts_pro_fina_indicator;
         例如: alter table ts_pro_fina_indicator modify column gross_margin REAL;
 
-    8. 我单独加的，巴菲特标准，最近10年roe>20%。所以我私以为保守投资策略里, 最近5年的roe应该大于10%， 这一条过滤掉了康美药业，所以很有用
+    8. 我单独加的，巴菲特标准，最近10年roe>20%。所以我私以为保守投资策略里, 最近10年的roe应该大于10%， 这一条过滤掉了康美药业，所以很有用
 
     巴菲特的标准:
         只有净资产收益率不低于20%，而且能稳定增长的企业才能进入其研究范畴
@@ -554,7 +554,8 @@ def defensive_main():
                 ts_code in (select ts_code from ts_pro_income where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
                     ts_code in (
                         select ts_code from ts_pro_dividend where end_date > 20080101 and end_date < 20190101 and cash_div_tax > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
-                        ts_code in (select t_eps1.ts_code from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%%1231" and end_date < 20120101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps) > 1.33
+                        ts_code in (select t_eps1.ts_code from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%%1231" and end_date < 20120101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and
+                        old_eps > 0 and (new_eps / old_eps) > 1.5
                         )
                     )
                 )
