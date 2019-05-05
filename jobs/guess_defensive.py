@@ -487,7 +487,7 @@ def defensive_main():
 
     3. 利润的稳定性，过去10年中，普通股每年都有一定的利润。
         每股收益 esp
-        select ts_code from ts_pro_income where end_date > 20080101 and end_date < 20190101 and end_date like "%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10;
+        select ts_code from ts_pro_income where end_date > 20090101 and end_date < 20190101 and end_date like "%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10;
 
     4. 股息记录, 至少有20年连续支付股息的记录。A股历史较短，减小到10年
         分红送股数据: https://tushare.pro/document/2?doc_id=103
@@ -501,7 +501,7 @@ def defensive_main():
         diluted_eps: 而摊薄每股收益是把一些潜在有可能转化成上市公司股权的股票的加权平均股数都算进来了，比如可转股债，认股权证等。因为他们在未来有可能换成股票从而摊薄上市公司每股收益。
 
          截至2019年4月24日, 2008~2018 diluted_eps增长超过三分之一的有504家, 504 / 3609 = 13.9%
-        select t_eps1.ts_code from (select ts_code, sum(diluted_eps) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(diluted_eps) as old_eps from ts_pro_income where end_date > 20080101 and end_date like "%1231" and end_date < 20110101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps) > 1.33;
+        select t_eps1.ts_code from (select ts_code, sum(diluted_eps) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(diluted_eps) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%1231" and end_date < 20120101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps) > 1.33;
 
     6. 适度的市盈率，当期股价不应该高于过去3年平均利润的15倍
         股价比较动态, 这个指标要每周跑一次了。
@@ -520,7 +520,14 @@ def defensive_main():
         查看当前类型:  show columns from ts_pro_fina_indicator;
         例如: alter table ts_pro_fina_indicator modify column gross_margin REAL;
 
-    8. 我单独加的，巴菲特标准，最近10年roe>20%。所以我私以为保守投资策略里,最近5年的roe应该大于10%
+    8. 我单独加的，巴菲特标准，最近10年roe>20%。所以我私以为保守投资策略里, 最近5年的roe应该大于10%， 这一条过滤掉了康美药业，所以很有用
+
+    巴菲特的标准:
+        只有净资产收益率不低于20%，而且能稳定增长的企业才能进入其研究范畴
+        select t_eps1.ts_code from (select ts_code, sum(diluted_eps) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(diluted_eps) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%%1231" and end_date < 20110101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps)
+        > 1.33 and t_eps1.ts_code in (
+        select ts_code from ts_pro_fina_indicator where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and roe>20 group by ts_code having count(distinct year(end_date)) >= 10);
+
 
     """
 
@@ -547,7 +554,7 @@ def defensive_main():
                 ts_code in (select ts_code from ts_pro_income where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
                     ts_code in (
                         select ts_code from ts_pro_dividend where end_date > 20080101 and end_date < 20190101 and cash_div_tax > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
-                        ts_code in (select t_eps1.ts_code from (select ts_code, sum(diluted_eps) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(diluted_eps) as old_eps from ts_pro_income where end_date > 20080101 and end_date like "%%1231" and end_date < 20110101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps) > 1.33
+                        ts_code in (select t_eps1.ts_code from (select ts_code, sum(diluted_eps) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(diluted_eps) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%%1231" and end_date < 20120101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps) > 1.33
                         )
                     )
                 )
