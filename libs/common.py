@@ -93,11 +93,11 @@ def insert_other_db(to_db, data, table_name, write_index, primary_keys):
 # 插入数据。
 def insert(sql, params=()):
     with conn() as db:
-        print("insert sql:" + sql)
+        # print("insert sql:" + sql)
         try:
             db.execute(sql, params)
         except  Exception as e:
-            print("error :", e)
+            print("insert error :", e)
 
 
 # 查询数据
