@@ -366,7 +366,7 @@ def defensive_main(tmp_datetime, max_year=10):
     HAVING count(distinct `year`) = 3;
 """
 
-    cur_year = int((tmp_datetime).strftime("%Y")) - 1
+    cur_year = int((tmp_datetime).strftime("%Y"))
     start_year = cur_year - max_year
     half_num = int(max_year * 0.5)
     peer_num = 3
@@ -403,9 +403,22 @@ def defensive_main(tmp_datetime, max_year=10):
     data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
     data = data.drop_duplicates(subset="ts_code", keep="last")
     data.insert(0, "year", [cur_year] * len(data))
-    print(data)
+    logger.debug(data)
 
-
+    table_name = "ts_res_defensive"
+    data.head(n=1)
+    data = data.drop_duplicates(subset=["ts_code", 'year'], keep="last")
+    sql_date = """
+    SELECT `ts_code` FROM %s WHERE `year`='%s'
+    """ % (table_name, cur_year)
+    exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
+    date_set = set(exist_dates.ts_code)
+    data = data[-data['ts_code'].isin(date_set)]
+    if len(data) > 0:
+        try:
+            common.insert_db(data, table_name, False, "`ts_code`,`year`")
+        except sqlalchemy.exc.IntegrityError:
+            pass
 
 
 # main函数入口
