@@ -372,8 +372,8 @@ def defensive_main():
         INNER JOIN (select t_eps1.ts_code, (new_eps / 3) as average_income from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%%1231" and end_date < 20120101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and
                         old_eps > 0 and (new_eps / old_eps) > 2
         ) ts_income on ts_b.ts_code = ts_income.ts_code and end_date = "20181231" and total_assets > 4010001000 and
-        ts_b.total_cur_liab is not NULL and ts_b.total_cur_assets is not NULL and (ts_b.total_cur_liab <= 0 or ((ts_b.total_cur_assets / ts_b.total_cur_liab) > 2.0)) and
-        ts_code in (
+        total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0)) and
+        ts_b.ts_code in (
             select ts_code from ts_pro_fina_indicator where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and roe_waa>10 group by ts_code having count(distinct year(end_date)) >= 10 and
             ts_code in (
                 select ts_code from ts_pro_income where end_date > 20170101 and end_date < 20190101 and end_date like "%%1231" and total_revenue>4010001000 group by ts_code having count(distinct year(end_date)) >= 2 and
