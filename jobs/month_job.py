@@ -395,7 +395,7 @@ def defensive_main(tmp_datetime, max_year=10):
         start_year=start_year, start_year_peer=start_year+peer_num,
         cur_year=cur_year, last_year=cur_year-1, cur_year_peer= cur_year-peer_num,
         peer_num=peer_num, max_year=max_year,
-        dividend_num=max_year-1
+        dividend_num=max_year-1,
         half_num=half_num, half_year=cur_year-half_num
     )
 
