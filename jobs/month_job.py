@@ -378,12 +378,12 @@ def defensive_main(tmp_datetime, max_years=10):
         ) ts_income on ts_b.ts_code = ts_income.ts_code and end_date = "20181231" and total_assets > 4010001000 and
         total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0)) and
         ts_b.ts_code in (
-            select ts_code from ts_pro_fina_indicator where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and roe_waa>10 group by ts_code having count(distinct year(end_date)) >= 10 and
+            select ts_code from ts_pro_fina_indicator where end_date > {start_year}0101 and end_date < 20190101 and end_date like "%%1231" and roe_waa>10 group by ts_code having count(distinct year(end_date)) >= 10 and
             ts_code in (
                 select ts_code from ts_pro_income where end_date > 20170101 and end_date < 20190101 and end_date like "%%1231" and total_revenue>4010001000 group by ts_code having count(distinct year(end_date)) >= 2 and
-                ts_code in (select ts_code from ts_pro_income where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
+                ts_code in (select ts_code from ts_pro_income where end_date > {start_year}0101 and end_date < 20190101 and end_date like "%%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
                     ts_code in (
-                        select ts_code from ts_pro_dividend where end_date > 20090101 and end_date < 20190101 and (cash_div_tax > 0 or stk_div > 0) and div_proc="实施" GROUP by ts_code HAVING count(distinct year(end_date)) >= 9
+                        select ts_code from ts_pro_dividend where end_date > {start_year}0101 and end_date < 20190101 and (cash_div_tax > 0 or stk_div > 0) and div_proc="实施" GROUP by ts_code HAVING count(distinct year(end_date)) >= 9
                     )
                 )
             )
