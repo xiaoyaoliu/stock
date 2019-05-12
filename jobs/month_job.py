@@ -435,12 +435,12 @@ def buffett_main(tmp_datetime, max_year=10):
     (select ts_b.ts_code, (total_assets - total_liab) as ledger_asset, average_income from ts_pro_balancesheet ts_b
         INNER JOIN (select t_eps1.ts_code, (new_eps / {peer_num}) as average_income from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > {cur_year_peer}0101 and end_date like "%%1231" and end_date < {cur_year}0101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > {start_year}0101 and end_date like "%%1231" and end_date < {start_year_peer}0101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and
                         old_eps > 0 and (new_eps / old_eps) > 2
-        ) ts_income on ts_b.ts_code = ts_income.ts_code and end_date = "{last_year}1231" and total_assets > 4010001000 and
-        total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 1.3)) and
+        ) ts_income on ts_b.ts_code = ts_income.ts_code and end_date = "{last_year}1231" and total_assets > 2010001000 and
+        total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or (total_cur_assets / total_cur_liab) > 1.3) and (total_liab <= 0 or (total_assets / total_liab) > 1.3)
         ts_b.ts_code in (
             select ts_code from ts_pro_fina_indicator where end_date > {start_year}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and roe>20 group by ts_code having count(distinct year(end_date)) >= {max_year} and
             ts_code in (
-                select ts_code from ts_pro_income where end_date="{last_year}1231" and total_revenue>4010001000
+                select ts_code from ts_pro_income where end_date="{last_year}1231" and total_revenue>2010001000
             )
         )
     ) ts_balancesheet on ts_pro_basics.ts_code = ts_balancesheet.ts_code
