@@ -43,7 +43,8 @@ def engine_to_db(to_db):
 
 
 def conn():
-    db = MySQLdb.connect(MYSQL_HOST, MYSQL_USER, MYSQL_PWD, MYSQL_DB, charset="utf8")
+    engine_mysql = engine_to_db(MYSQL_DB)
+    db = engine_mysql.connect()
     # db.autocommit(on=True)
     return db
 
