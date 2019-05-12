@@ -411,9 +411,12 @@ def defensive_main(tmp_datetime, max_year=10):
     sql_date = """
     SELECT `ts_code` FROM %s WHERE `year`='%s'
     """ % (table_name, cur_year)
-    exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
-    date_set = set(exist_dates.ts_code)
-    data = data[-data['ts_code'].isin(date_set)]
+    try:
+        exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
+        date_set = set(exist_dates.ts_code)
+        data = data[-data['ts_code'].isin(date_set)]
+    except sqlalchemy.exc.ProgrammingError:
+        pass
     if len(data) > 0:
         try:
             common.insert_db(data, table_name, False, "`ts_code`,`year`")
