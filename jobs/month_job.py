@@ -180,9 +180,61 @@ def stat_balancesheet_current(tmp_datetime):
     stat_current_fina(tmp_datetime, "balancesheet")
 
 
-def stat_dividend_current(tmp_datetime):
-    # pass
-    stat_current_fina(tmp_datetime, "dividend")
+
+def stat_dividend_current(tmp_datetime, method="dividend"):
+    sql_1 = """
+    SELECT `ts_code` FROM ts_pro_basics
+    """
+    basic_data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
+    basic_data = basic_data.drop_duplicates(subset="ts_code", keep="last")
+    pro = ts.pro_api()
+    # 每年都取上一年的财报
+    cur_year = int((tmp_datetime).strftime("%Y")) - 1
+    cur_date = "%s1231" % cur_year
+    table_name = "ts_pro_%s" % method
+    sql_exist = """
+    SELECT `ts_code` FROM %s WHERE `end_date`='%s' AND `div_proc`='实施'
+    """ % (table_name, cur_date)
+    exist_data = pd.read_sql(sql=sql_exist, con=common.engine(), params=[])
+    logger.info("[%s][mysql][%s]Begin: 已获取%s财报的公司共有%s家", tmp_datetime, table_name, cur_date, len(exist_data.ts_code))
+
+    exist_set = set(exist_data.ts_code)
+
+    new_code = []
+
+    for i, ts_code in enumerate(basic_data.ts_code):
+        if ts_code in exist_set:
+            continue
+        try:
+            data = getattr(pro, method)(ts_code=ts_code, start_date=cur_date)
+        except IOError:
+            data = None
+        if not data is None and len(data) > 0:
+            clear_sql = """
+            DELETE * from %s WHERE `div_proc`='实施' and `tc_code`=%s
+            """ % (table_name, ts_code)
+            common.insert(clear_sql)
+            logger.info("Table %s: insert %s, %s(%s) / %s", table_name, ts_code, i, len(exist_data) + len(new_code), len(basic_data))
+            data.head(n=1)
+            data = data.drop_duplicates(subset=["ts_code", 'end_date'], keep="last")
+            sql_date = """
+                SELECT `end_date` FROM %s WHERE `ts_code`='%s'
+                """ % (table_name, ts_code)
+            exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
+            date_set = set(exist_dates.end_date)
+            data = data[-data['end_date'].isin(date_set)]
+            if len(data) > 0:
+                try:
+                    common.insert_db(data, table_name, False, "`ts_code`,`end_date`")
+                    new_code.append(ts_code)
+                except sqlalchemy.exc.IntegrityError:
+                    pass
+        else:
+            logger.debug("no data . method=%s ts_code=%s", method, ts_code)
+        # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
+        time.sleep(1)
+
+    logger.info("[%s][mysql][%s]End: 新发布%s财报的公司共有%s家", tmp_datetime, table_name, cur_date, len(new_code))
 
 
 def update_last_10_years():
@@ -201,12 +253,12 @@ def update_current_year():
     TODO 按需更新其他几个表
     TODO 分红数据需要检查div_proc字段，为“实施”的时候才不更新，否则需要更新。div字段还有: "预案"、停止实施、未通过，股东大会通过，股东提议，预披露
     """
+    common.run_with_args(stat_dividend_current)
     common.run_with_args(stat_pro_basics)
     common.run_with_args(stat_fina_indicator_current)
     common.run_with_args(stat_balancesheet_current)
     common.run_with_args(stat_income_current)
 
-    common.run_with_args(stat_dividend_current)
 
 
 # main函数入口
