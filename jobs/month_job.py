@@ -366,7 +366,7 @@ def defensive_main(tmp_datetime, max_year=10):
     HAVING count(distinct `year`) = 3;
 """
 
-    cur_year = int((tmp_datetime).strftime("%Y"))
+    cur_year = int((tmp_datetime).strftime("%Y")) - 1
     start_year = cur_year - max_year
     half_num = int(max_year * 0.5)
     peer_num = 3
