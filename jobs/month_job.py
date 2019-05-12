@@ -456,7 +456,6 @@ def buffett_main(tmp_datetime, max_year=10):
     data = data.drop_duplicates(subset="ts_code", keep="last")
     data.insert(0, "year", [cur_year] * len(data))
     logger.debug(data)
-    return
 
     table_name = "ts_res_buffett"
     data.head(n=1)
@@ -475,9 +474,6 @@ def buffett_main(tmp_datetime, max_year=10):
             common.insert_db(data, table_name, False, "`ts_code`,`year`")
         except sqlalchemy.exc.IntegrityError:
             pass
-
-
-
 
 
 # main函数入口
