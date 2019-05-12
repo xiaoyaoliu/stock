@@ -199,11 +199,13 @@ def update_last_10_years():
 def update_current_year():
     """
     TODO 按需更新其他几个表
+    TODO 分红数据需要检查div_proc字段，为“实施”的时候才不更新，否则需要更新。div字段还有: "预案"、停止实施、未通过，股东大会通过，股东提议，预披露
     """
     common.run_with_args(stat_pro_basics)
     common.run_with_args(stat_fina_indicator_current)
     common.run_with_args(stat_balancesheet_current)
     common.run_with_args(stat_income_current)
+
     common.run_with_args(stat_dividend_current)
 
 

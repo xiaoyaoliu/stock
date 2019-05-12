@@ -504,6 +504,9 @@ def defensive_main():
          截至2019年4月24日, 2009~2018 diluted_eps增长超过三分之一的有504家, 504 / 3609 = 13.9%
         select t_eps1.ts_code from (select ts_code, sum(diluted_eps) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(diluted_eps) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%1231" and end_date < 20120101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps) > 1.33;
 
+    5.1. 我单独加的，巴菲特标准，最近10年roe>20%。所以我私以为保守投资策略里, 最近10年的roe应该大于10%， 这一条过滤掉了康美药业，所以很有用
+        select ts_code from ts_pro_fina_indicator where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and roe_waa>10 group by ts_code having count(distinct year(end_date)) >= 10 and
+
     6. 适度的市盈率，当期股价不应该高于过去3年平均利润的15倍
         股价比较动态, 这个指标要每周跑一次了。
 
@@ -521,12 +524,11 @@ def defensive_main():
         查看当前类型:  show columns from ts_pro_fina_indicator;
         例如: alter table ts_pro_fina_indicator modify column gross_margin REAL;
 
-    8. 我单独加的，巴菲特标准，最近10年roe>20%。所以我私以为保守投资策略里, 最近10年的roe应该大于10%， 这一条过滤掉了康美药业，所以很有用
 
     巴菲特的标准:
         只有净资产收益率不低于20%，而且能稳定增长的企业才能进入其研究范畴
         select t_eps1.ts_code from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%%1231" and end_date < 20110101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps)
-        > 1.33 and t_eps1.ts_code in (
+        > 2 and t_eps1.ts_code in (
         select ts_code from ts_pro_fina_indicator where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and roe>20 group by ts_code having count(distinct year(end_date)) >= 10);
 
 
