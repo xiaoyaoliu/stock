@@ -3,4 +3,4 @@
 mkdir -p /data/logs
 DATE=`date +%Y-%m-%d:%H:%M:%S`
 echo $DATE >> /data/logs/monthly.log
-/usr/bin/python3 /data/stock/jobs/month_job.py > /dev/null 2>/data/logs/month.0.log &
+nohup /usr/bin/python3 /data/stock/jobs/month_job.py > /dev/null 2>/data/logs/month.0.log &
