@@ -211,7 +211,7 @@ def stat_dividend_current(tmp_datetime, method="dividend"):
             data = None
         if not data is None and len(data) > 0:
             clear_sql = """
-            DELETE * from %s WHERE `div_proc`='实施' and `tc_code`=%s
+            DELETE from %s WHERE `div_proc`!='实施' and `ts_code`='%s'
             """ % (table_name, ts_code)
             common.insert(clear_sql)
             logger.info("Table %s: insert %s, %s(%s) / %s", table_name, ts_code, i, len(exist_data) + len(new_code), len(basic_data))
