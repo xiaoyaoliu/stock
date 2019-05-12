@@ -103,11 +103,10 @@ def insert(sql, params=()):
 # 查询数据
 def select(sql, params=()):
     with conn() as db:
-        print("select sql:" + sql)
         try:
             db.execute(sql, params)
         except  Exception as e:
-            print("error :", e)
+            print("select error :", e)
         result = db.fetchall()
         return result
 
