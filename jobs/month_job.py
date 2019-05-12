@@ -250,14 +250,148 @@ def update_last_10_years():
 
 def update_current_year():
     """
-    TODO 按需更新其他几个表
-    TODO 分红数据需要检查div_proc字段，为“实施”的时候才不更新，否则需要更新。div字段还有: "预案"、停止实施、未通过，股东大会通过，股东提议，预披露
     """
-    common.run_with_args(stat_dividend_current)
     common.run_with_args(stat_pro_basics)
     common.run_with_args(stat_fina_indicator_current)
     common.run_with_args(stat_balancesheet_current)
     common.run_with_args(stat_income_current)
+    common.run_with_args(stat_dividend_current)
+
+def defensive_main():
+    """
+    总体思路:
+    由于6, 7和当前股价有关，所以肯定是放在最后的
+    2, 4依赖pro接口，所以作为第二步
+    1, 3, 5使用普通接口的数据即可分析，所以作为第一个里程碑
+
+    里程碑1: 获取符合1, 3, 4, 5的公司列表，本周完成。 今后每年运行一次
+    里程碑2: 使用列表，再过滤掉不符合2的公司。 今后每年运行一次
+    里程碑3: 根据当前股价，计算符合6，7的公司，今后每周三运行一次
+
+    单元测试: 以2018年手动确认的结果为测试用例
+
+    每周将符合条件的股票，以邮件的方式发到我的qq邮箱
+
+
+    1. 适当的企业规模。工业企业年销售额不低于1亿美元(8亿人民币左右)；公用事业企业，总资产不低于5000万美元(4亿人民币左右)
+
+    https://tushare.pro/document/2?doc_id=79
+    按照官方建议，都改用pro接口吧: https://tushare.pro/document/2?doc_id=79
+
+
+    1.1 总资产totalAssets(万元) 在表ts_stock_basics,
+        考虑通货膨胀，这里总资产暂时设置为40亿人民币
+        2019年4月10日，A股共3609家上市公司，总资产超过40亿的公司有1819家，占比50.4%
+        sql方法: SELECT name from ts_stock_basics WHERE totalAssets > 400000;
+        balancesheet.total_assets
+        pro方法: select ts_code from ts_pro_balancesheet where end_date = "20181231" and total_assets > 4010001000 ;
+    1.2 年销售额，使用business_income, 营业收入(百万元)
+        考虑通货膨胀，这里暂时设置为80亿人民币，且最近3年都超过80亿人民币，每个季度的财报不低于20亿人民币
+
+        2017年，3605家公司发布年度财报，只有659家的年营业收入超过80亿元人民币，占18%
+        1年的sql方法: select name, business_income from ts_stock_profit where year=2017 AND business_income>8000;
+
+        2015 ～2017，连续3年营收大于80亿的，只有431家（共3558家），占12%
+        3年的sql方法: select code, name from ts_stock_profit where (year=2017 or year=2016 or year=2015) AND business_income>8000 group by code having count(distinct year) = 3;
+        income.total_revenue >
+        pro方法: select ts_code from ts_pro_income where end_date > 20160101 and end_date < 20190101 and end_date like "%1231" and total_revenue>4010001000 group by ts_code having count(distinct year(end_date)) = 3;
+
+
+    2. 足够强劲的财务状况。工业企业流动资产(total_cur_assets) 应该至少是流动负债的2倍，且长期债务不应该超过流动资产净额，即"营运资本"。公用事业企业，负债不应该超过股权的两倍。
+        资产负债表: https://tushare.pro/document/2?doc_id=36
+        流动负债合计字段: total_cur_liab	float	流动负债合计
+        负债合计字段:   total_liab	float	负债合计
+        balancesheet
+        截至2019年4月24日, 负债率符合要求的公司有764家
+        select ts_code from ts_pro_balancesheet where end_date = "20181231" and total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0)) ;
+
+    3. 利润的稳定性，过去10年中，普通股每年都有一定的利润。
+        每股收益 esp
+        select ts_code from ts_pro_income where end_date > 20090101 and end_date < 20190101 and end_date like "%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10;
+
+    4. 股息记录, 至少有20年连续支付股息的记录。A股历史较短，减小到10年
+        分红送股数据: https://tushare.pro/document/2?doc_id=103
+        截至2019年4月24日, 2009~2018每年都分红的公司有549家, 549 / 3609 = 15.2%
+        select ts_code from ts_pro_dividend where end_date > 20090101 and end_date < 20190101 and cash_div_tax > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10;
+
+
+    5. 过去10年内，每股利润的增长至少要达到三分之一(期初与期末使用三年平均数)
+        zx: 考虑到通货膨胀，10年后利润增长需要增长100%
+        net_profits,净利润
+        basic_eps: 每股收益应该是基本每股收益：是当期净利润除以当期在外发行的普通股的加权平均来确定，可以反应出来目前股本结构下的盈利能力。
+        diluted_eps: 而摊薄每股收益是把一些潜在有可能转化成上市公司股权的股票的加权平均股数都算进来了，比如可转股债，认股权证等。因为他们在未来有可能换成股票从而摊薄上市公司每股收益。
+
+         截至2019年4月24日, 2009~2018 diluted_eps增长超过三分之一的有504家, 504 / 3609 = 13.9%
+        select t_eps1.ts_code from (select ts_code, sum(diluted_eps) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(diluted_eps) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%1231" and end_date < 20120101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps) > 1.33;
+
+    5.1. 我单独加的，巴菲特标准，最近10年roe>20%。所以我私以为保守投资策略里, 最近10年的roe应该大于10%， 这一条过滤掉了康美药业(财务造假)，所以很有用
+        select ts_code from ts_pro_fina_indicator where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and roe_waa>10 group by ts_code having count(distinct year(end_date)) >= 10 and
+
+    6. 适度的市盈率，当期股价不应该高于过去3年平均利润的15倍
+        股价比较动态, 这个指标要每周跑一次了。
+
+    7. 适度的股价资产比
+        当期股价不应该超过最后报告的资产账面值的1.5倍。根据经验法则，我们建议，市盈率与价格账面值之比的乘积不应该超过22.5.
+        (例如 市盈率15, 1.5倍的价格账面值; 9倍的市盈率和2.5倍的资产价值)
+        资产账面值:
+        《国际评估准则》指出，企业的账面价值,
+        是企业资产负债表上体现的企业全部资产(扣除折旧、损耗和摊销)与企业全部负债之间的差额，与账面资产、净值和股东权益是同义的。
+
+        账面价值 = total_assets - total_liab
+
+        # 检查下你关心的列是不是double，改变你关心的列的类型
+        ALTER TABLE table_name MODIFY COLUMN column_name datatype;
+        查看当前类型:  show columns from ts_pro_fina_indicator;
+        例如: alter table ts_pro_fina_indicator modify column gross_margin REAL;
+
+
+    巴菲特的标准:
+        只有净资产收益率不低于20%，而且能稳定增长的企业才能进入其研究范畴
+        select t_eps1.ts_code from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%%1231" and end_date < 20110101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps)
+        > 2 and t_eps1.ts_code in (
+        select ts_code from ts_pro_fina_indicator where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and roe>20 group by ts_code having count(distinct year(end_date)) >= 10);
+
+
+    """
+
+    # 看起来第一版的分红数据有问题，连续10年分红且盈利的企业不全:例如 隧道股份
+    sql_1 = """
+    SELECT `code`, `name` FROM ts_stock_profit
+    WHERE (`year`=2017 or `year`=2016 or `year`=2015) AND `business_income`>8000 AND
+        `name` in (SELECT `name` from ts_stock_basics WHERE `totalAssets` > 400000 AND
+            `code` in (SELECT `code` FROM ts_stock_report WHERE `year`<2018 and `year`>=2008 AND `eps`>0 and `distrib` is not NULL GROUP by `code` HAVING count(distinct `year`) >= 10
+            )
+        )
+    GROUP by `code`
+    HAVING count(distinct `year`) = 3;
+"""
+
+    sql_pro = """
+    select ts_pro_basics.ts_code, symbol, name, area, industry, market, list_date, ledger_asset from ts_pro_basics INNER JOIN
+    (select ts_code, (total_assets - total_liab) as ledger_asset from ts_pro_balancesheet where end_date = "20181231" and total_assets > 4010001000 and
+        total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0)) and
+        ts_code in (
+            select ts_code from ts_pro_fina_indicator where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and roe_waa>10 group by ts_code having count(distinct year(end_date)) >= 10 and
+            ts_code in (
+                select ts_code from ts_pro_income where end_date > 20170101 and end_date < 20190101 and end_date like "%%1231" and total_revenue>4010001000 group by ts_code having count(distinct year(end_date)) >= 2 and
+                ts_code in (select ts_code from ts_pro_income where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
+                    ts_code in (
+                        select ts_code from ts_pro_dividend where end_date > 20090101 and end_date < 20190101 and (cash_div_tax > 0 or stk_div > 0) and div_proc="实施" GROUP by ts_code HAVING count(distinct year(end_date)) >= 9 and
+                        ts_code in (select t_eps1.ts_code from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%%1231" and end_date < 20120101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and
+                        old_eps > 0 and (new_eps / old_eps) > 2
+                        )
+                    )
+                )
+            )
+        )
+    ) ts_balancesheet on ts_pro_basics.ts_code = ts_balancesheet.ts_code
+"""
+
+    data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
+    data = data.drop_duplicates(subset="ts_code", keep="last")
+    print("######## len data ########:", len(data))
+    print(data)
+
 
 
 
@@ -265,4 +399,5 @@ def update_current_year():
 if __name__ == '__main__':
     # 使用方法传递。
     logger.info('begin')
-    update_current_year()
+    # update_current_year()
+    defensive_main()
