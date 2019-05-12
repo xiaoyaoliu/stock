@@ -415,6 +415,8 @@ def defensive_main(tmp_datetime, max_year=10):
             common.insert_db(data, table_name, False, "`ts_code`,`year`")
         except sqlalchemy.exc.IntegrityError:
             pass
+    else:
+        logger.debug("guess defensive: no new stock is found")
 
 
 def buffett_main(tmp_datetime, max_year=10):
@@ -474,6 +476,8 @@ def buffett_main(tmp_datetime, max_year=10):
             common.insert_db(data, table_name, False, "`ts_code`,`year`")
         except sqlalchemy.exc.IntegrityError:
             pass
+    else:
+        logger.debug("guess buffett: no new stock is found")
 
 
 # main函数入口
