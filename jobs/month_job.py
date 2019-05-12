@@ -379,7 +379,7 @@ def defensive_main(tmp_datetime, max_year=10):
         ) ts_income on ts_b.ts_code = ts_income.ts_code and end_date = "{last_year}1231" and total_assets > 4010001000 and
         total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0)) and
         ts_b.ts_code in (
-            select ts_code from ts_pro_fina_indicator where end_date > {start_year}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and roe_waa>15 group by ts_code having count(distinct year(end_date)) >= {max_year} and
+            select ts_code from ts_pro_fina_indicator where end_date > {cur_year_peer}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and roe_waa>15 group by ts_code having count(distinct year(end_date)) >= {peer_num} and
             ts_code in (
                 select ts_code from ts_pro_income where end_date > {cur_year_peer}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and total_revenue>4010001000 group by ts_code having count(distinct year(end_date)) >= {peer_num} and
                 ts_code in (select ts_code from ts_pro_income where end_date > {start_year}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= {max_year} and
