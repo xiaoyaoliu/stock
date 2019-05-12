@@ -556,7 +556,7 @@ def defensive_main():
                 select ts_code from ts_pro_income where end_date > 20170101 and end_date < 20190101 and end_date like "%%1231" and total_revenue>4010001000 group by ts_code having count(distinct year(end_date)) >= 2 and
                 ts_code in (select ts_code from ts_pro_income where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
                     ts_code in (
-                        select ts_code from ts_pro_dividend where end_date > 20090101 and end_date < 20190101 and (cash_div_tax > 0 or stk_div > 0) and (div_proc="实施" or div_proc="预案") GROUP by ts_code HAVING count(distinct year(end_date)) >= 10 and
+                        select ts_code from ts_pro_dividend where end_date > 20090101 and end_date < 20190101 and (cash_div_tax > 0 or stk_div > 0) and div_proc="实施" GROUP by ts_code HAVING count(distinct year(end_date)) >= 9 and
                         ts_code in (select t_eps1.ts_code from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%%1231" and end_date < 20120101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and
                         old_eps > 0 and (new_eps / old_eps) > 2
                         )
