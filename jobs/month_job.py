@@ -417,7 +417,7 @@ def defensive_main(tmp_datetime, max_year=10):
             pass
 
 
-def buffett_main(tmp_datetime):
+def buffett_main(tmp_datetime, max_year=10):
     """
     巴菲特的标准:
         只有净资产收益率不低于20%，而且能稳定增长的企业才能进入其研究范畴
@@ -427,7 +427,6 @@ def buffett_main(tmp_datetime):
     """
     cur_year = int((tmp_datetime).strftime("%Y"))
     start_year = cur_year - max_year
-    half_num = int(max_year * 0.5)
     peer_num = 3
 
 
@@ -449,8 +448,7 @@ def buffett_main(tmp_datetime):
         start_year=start_year, start_year_peer=start_year+peer_num,
         cur_year=cur_year, last_year=cur_year-1, cur_year_peer= cur_year-peer_num,
         peer_num=peer_num, max_year=max_year,
-        dividend_num=max_year-1,
-        half_num=half_num, half_year=cur_year-half_num
+        dividend_num=max_year-1
     )
 
 
