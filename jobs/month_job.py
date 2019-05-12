@@ -55,12 +55,15 @@ def stat_pro_basics(tmp_datetime):
     """
     pro = ts.pro_api()
     data = pro.stock_basic(list_status='L')
-    sql_1 = """
-    SELECT `ts_code` FROM ts_pro_basics
-    """
-    exist_data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
-    exist_data = exist_data.drop_duplicates(subset="ts_code", keep="last")
-    exist_set = set(exist_data.ts_code)
+    try:
+        sql_1 = """
+        SELECT `ts_code` FROM ts_pro_basics
+        """
+        exist_data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
+        exist_data = exist_data.drop_duplicates(subset="ts_code", keep="last")
+        exist_set = set(exist_data.ts_code)
+    except sqlalchemy.exc.ProgrammingError:
+        exist_set = set()
 
     if not data is None and len(data) > 0:
         data = data.drop_duplicates(subset="ts_code", keep="last")
@@ -128,13 +131,17 @@ def stat_current_fina(tmp_datetime, method):
     cur_year = int((tmp_datetime).strftime("%Y")) - 1
     cur_date = "%s1231" % cur_year
     table_name = "ts_pro_%s" % method
-    sql_exist = """
-    SELECT `ts_code` FROM %s WHERE `end_date`='%s'
-    """ % (table_name, cur_date)
-    exist_data = pd.read_sql(sql=sql_exist, con=common.engine(), params=[])
-    logger.info("[%s][mysql][%s]Begin: 已获取%s财报的公司共有%s家", tmp_datetime, table_name, cur_date, len(exist_data.ts_code))
 
-    exist_set = set(exist_data.ts_code)
+    try:
+        sql_exist = """
+        SELECT `ts_code` FROM %s WHERE `end_date`='%s'
+        """ % (table_name, cur_date)
+        exist_data = pd.read_sql(sql=sql_exist, con=common.engine(), params=[])
+        logger.info("[%s][mysql][%s]Begin: 已获取%s财报的公司共有%s家", tmp_datetime, table_name, cur_date, len(exist_data.ts_code))
+
+        exist_set = set(exist_data.ts_code)
+    except sqlalchemy.exc.ProgrammingError:
+        exist_set = set()
 
     new_code = []
 
@@ -149,12 +156,15 @@ def stat_current_fina(tmp_datetime, method):
             logger.info("Table %s: insert %s, %s(%s) / %s", table_name, ts_code, i, len(exist_data) + len(new_code), len(basic_data))
             data.head(n=1)
             data = data.drop_duplicates(subset=["ts_code", 'end_date'], keep="last")
-            sql_date = """
-                SELECT `end_date` FROM %s WHERE `ts_code`='%s'
-                """ % (table_name, ts_code)
-            exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
-            date_set = set(exist_dates.end_date)
-            data = data[-data['end_date'].isin(date_set)]
+            try:
+                sql_date = """
+                    SELECT `end_date` FROM %s WHERE `ts_code`='%s'
+                    """ % (table_name, ts_code)
+                exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
+                date_set = set(exist_dates.end_date)
+                data = data[-data['end_date'].isin(date_set)]
+            except sqlalchemy.exc.ProgrammingError:
+                pass
             if len(data) > 0:
                 try:
                     common.insert_db(data, table_name, False, "`ts_code`,`end_date`")
@@ -192,13 +202,16 @@ def stat_dividend_current(tmp_datetime, method="dividend"):
     cur_year = int((tmp_datetime).strftime("%Y")) - 1
     cur_date = "%s1231" % cur_year
     table_name = "ts_pro_%s" % method
-    sql_exist = """
-    SELECT `ts_code` FROM %s WHERE `end_date`='%s' AND `div_proc`='实施'
-    """ % (table_name, cur_date)
-    exist_data = pd.read_sql(sql=sql_exist, con=common.engine(), params=[])
-    logger.info("[%s][mysql][%s]Begin: 已获取%s财报的公司共有%s家", tmp_datetime, table_name, cur_date, len(exist_data.ts_code))
+    try:
+        sql_exist = """
+        SELECT `ts_code` FROM %s WHERE `end_date`='%s' AND `div_proc`='实施'
+        """ % (table_name, cur_date)
+        exist_data = pd.read_sql(sql=sql_exist, con=common.engine(), params=[])
+        logger.info("[%s][mysql][%s]Begin: 已获取%s财报的公司共有%s家", tmp_datetime, table_name, cur_date, len(exist_data.ts_code))
 
-    exist_set = set(exist_data.ts_code)
+        exist_set = set(exist_data.ts_code)
+    except sqlalchemy.exc.ProgrammingError:
+        exist_set = set()
 
     new_code = []
 
@@ -217,12 +230,15 @@ def stat_dividend_current(tmp_datetime, method="dividend"):
             logger.info("Table %s: insert %s, %s(%s) / %s", table_name, ts_code, i, len(exist_data) + len(new_code), len(basic_data))
             data.head(n=1)
             data = data.drop_duplicates(subset=["ts_code", 'end_date'], keep="last")
-            sql_date = """
-                SELECT `end_date` FROM %s WHERE `ts_code`='%s'
-                """ % (table_name, ts_code)
-            exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
-            date_set = set(exist_dates.end_date)
-            data = data[-data['end_date'].isin(date_set)]
+            try:
+                sql_date = """
+                    SELECT `end_date` FROM %s WHERE `ts_code`='%s'
+                    """ % (table_name, ts_code)
+                exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
+                date_set = set(exist_dates.end_date)
+                data = data[-data['end_date'].isin(date_set)]
+            except sqlalchemy.exc.ProgrammingError:
+                pass
             if len(data) > 0:
                 try:
                     common.insert_db(data, table_name, False, "`ts_code`,`end_date`")
