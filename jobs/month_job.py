@@ -345,13 +345,6 @@ def defensive_main(tmp_datetime, max_year=10):
         例如: alter table ts_pro_fina_indicator modify column gross_margin REAL;
 
 
-    巴菲特的标准:
-        只有净资产收益率不低于20%，而且能稳定增长的企业才能进入其研究范畴
-        select t_eps1.ts_code from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%%1231" and end_date < 20110101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps)
-        > 2 and t_eps1.ts_code in (
-        select ts_code from ts_pro_fina_indicator where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and roe>20 group by ts_code having count(distinct year(end_date)) >= 10);
-
-
     """
 
     # 看起来第一版的分红数据有问题，连续10年分红且盈利的企业不全:例如 隧道股份
@@ -424,9 +417,75 @@ def defensive_main(tmp_datetime, max_year=10):
             pass
 
 
+def buffett_main(tmp_datetime):
+    """
+    巴菲特的标准:
+        只有净资产收益率不低于20%，而且能稳定增长的企业才能进入其研究范畴
+        select t_eps1.ts_code from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%%1231" and end_date < 20110101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps)
+        > 2 and t_eps1.ts_code in (
+        select ts_code from ts_pro_fina_indicator where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and roe>20 group by ts_code having count(distinct year(end_date)) >= 10);
+    """
+    cur_year = int((tmp_datetime).strftime("%Y"))
+    start_year = cur_year - max_year
+    half_num = int(max_year * 0.5)
+    peer_num = 3
+
+
+    sql_pro = """
+    select ts_pro_basics.ts_code, symbol, name, area, industry, market, list_date, ledger_asset, average_income from ts_pro_basics INNER JOIN
+    (select ts_b.ts_code, (total_assets - total_liab) as ledger_asset, average_income from ts_pro_balancesheet ts_b
+        INNER JOIN (select t_eps1.ts_code, (new_eps / {peer_num}) as average_income from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > {cur_year_peer}0101 and end_date like "%%1231" and end_date < {cur_year}0101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > {start_year}0101 and end_date like "%%1231" and end_date < {start_year_peer}0101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and
+                        old_eps > 0 and (new_eps / old_eps) > 2
+        ) ts_income on ts_b.ts_code = ts_income.ts_code and end_date = "{last_year}1231" and total_assets > 4010001000 and
+        total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0)) and
+        ts_b.ts_code in (
+            select ts_code from ts_pro_fina_indicator where end_date > {start_year}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and roe_waa>20 group by ts_code having count(distinct year(end_date)) >= {max_year} and
+            ts_code in (
+                select ts_code from ts_pro_income where end_date > {cur_year_peer}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and total_revenue>4010001000 group by ts_code having count(distinct year(end_date)) >= {peer_num}
+            )
+        )
+    ) ts_balancesheet on ts_pro_basics.ts_code = ts_balancesheet.ts_code
+""".format(
+        start_year=start_year, start_year_peer=start_year+peer_num,
+        cur_year=cur_year, last_year=cur_year-1, cur_year_peer= cur_year-peer_num,
+        peer_num=peer_num, max_year=max_year,
+        dividend_num=max_year-1,
+        half_num=half_num, half_year=cur_year-half_num
+    )
+
+
+    data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
+    data = data.drop_duplicates(subset="ts_code", keep="last")
+    data.insert(0, "year", [cur_year] * len(data))
+    logger.debug(data)
+    return
+
+    table_name = "ts_res_buffett"
+    data.head(n=1)
+    data = data.drop_duplicates(subset=["ts_code", 'year'], keep="last")
+    sql_date = """
+    SELECT `ts_code` FROM %s WHERE `year`='%s'
+    """ % (table_name, cur_year)
+    try:
+        exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
+        date_set = set(exist_dates.ts_code)
+        data = data[-data['ts_code'].isin(date_set)]
+    except sqlalchemy.exc.ProgrammingError:
+        pass
+    if len(data) > 0:
+        try:
+            common.insert_db(data, table_name, False, "`ts_code`,`year`")
+        except sqlalchemy.exc.IntegrityError:
+            pass
+
+
+
+
+
 # main函数入口
 if __name__ == '__main__':
     # 使用方法传递。
     logger.info('begin')
     # update_current_year()
-    common.run_with_args(defensive_main)
+    # common.run_with_args(defensive_main)
+    common.run_with_args(buffett_main)
