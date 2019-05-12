@@ -324,8 +324,8 @@ def defensive_main(tmp_datetime, max_year=10):
          截至2019年4月24日, 2009~2018 diluted_eps增长超过三分之一的有504家, 504 / 3609 = 13.9%
         select t_eps1.ts_code from (select ts_code, sum(diluted_eps) as new_eps from ts_pro_income where end_date > 20160101 and end_date like "%1231" and end_date < 20190101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(diluted_eps) as old_eps from ts_pro_income where end_date > 20090101 and end_date like "%1231" and end_date < 20120101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps) > 1.33;
 
-    5.1. 我单独加的，巴菲特标准，最近10年roe>20%。所以我私以为保守投资策略里, 最近10年的roe应该大于10%， 这一条过滤掉了康美药业(财务造假)，所以很有用
-        select ts_code from ts_pro_fina_indicator where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and roe_waa>10 group by ts_code having count(distinct year(end_date)) >= 10 and
+    5.1. 我单独加的，巴菲特标准，最近10年roe>20%。所以我私以为保守投资策略里, 最近10年的roe应该大于15%， 这一条过滤掉了康美药业(财务造假)，所以很有用
+        select ts_code from ts_pro_fina_indicator where end_date > 20090101 and end_date < 20190101 and end_date like "%%1231" and roe_waa>15 group by ts_code having count(distinct year(end_date)) >= 10 and
 
     6. 适度的市盈率，当期股价不应该高于过去3年平均利润的15倍
         股价比较动态, 这个指标要每周跑一次了。
@@ -366,7 +366,7 @@ def defensive_main(tmp_datetime, max_year=10):
     HAVING count(distinct `year`) = 3;
 """
 
-    cur_year = int((tmp_datetime).strftime("%Y")) - 1
+    cur_year = int((tmp_datetime).strftime("%Y"))
     start_year = cur_year - max_year
     peer_num = 3
 
@@ -401,7 +401,6 @@ def defensive_main(tmp_datetime, max_year=10):
     data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
     data = data.drop_duplicates(subset="ts_code", keep="last")
     data.insert(0, "year", [cur_year] * len(data))
-    print("######## len data ########:", len(data))
     print(data)
 
 
