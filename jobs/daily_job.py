@@ -75,7 +75,7 @@ def stat_pro_basics(tmp_datetime):
     Pandas：让你像写SQL一样做数据分析（一）: https://www.cnblogs.com/en-heng/p/5630849.html
     """
     pro = ts.pro_api()
-    cur_day = int(tmp_datetime.strftime("%Y%m%d")) - 1
+    cur_day = int(tmp_datetime.strftime("%Y%m%d"))
     print(cur_day)
     data = pro.daily_basic(trade_date=cur_day)
     try:
@@ -96,6 +96,21 @@ def stat_pro_basics(tmp_datetime):
             common.insert_db(data, "ts_pro_daily", False, "`ts_code`, `trade_date`")
     else:
         logger.debug("no data . stock_basics")
+
+def daily_common(cur_day, res_table, standard):
+    sql_pro = """
+    select tb_res.ts_code, name, area, industry, market, list_date, (total_mv * 10000 / ledger_asset) as pb, (total_mv * 10000 / average_income) as pe from {res_table} tb_res INNER JOIN
+    ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code AND trade_date='{cur_day}' WHERE (pb * pe) < {standard}
+""".format(
+        res_table=res_table,
+        cur_day = cur_day,
+        standard=standard
+    )
+
+    data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
+    data = data.drop_duplicates(subset="ts_code", keep="last")
+    logger.debug(data)
+
 
 def daily_defensive(tmp_datetime):
     """
@@ -119,18 +134,10 @@ def daily_defensive(tmp_datetime):
     cur_day = int(tmp_datetime.strftime("%Y%m%d")) - 1
     print(cur_day)
     # table_name = "ts_res_buffett"
-    table_name = "ts_res_defensive"
-
-    sql_pro = """
-    select tb_res.ts_code, name, area, industry, market, list_date, (total_mv * 10000 / ledger_asset) as pb, (total_mv * 10000 / average_income) as pe from {res_table} tb_res INNER JOIN
-    ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code where (pb * pe) < 50
-""".format(
-        res_table=table_name
-    )
-
-    data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
-    data = data.drop_duplicates(subset="ts_code", keep="last")
-    logger.debug(data)
+    # 由于defensive的ROE是15，高成长，所以放宽标准
+    daily_common(cur_day, "ts_res_defensive", 40)
+    # 由于buffett的ROE是10年连续20，牛逼的成长，所以放宽标准到50
+    daily_common(cur_day, "ts_res_buffett", 50)
 
 
 
