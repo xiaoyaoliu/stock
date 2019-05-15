@@ -281,21 +281,27 @@ def gen_res_common(table_name, sql_pro, cur_year):
 
     data.head(n=1)
     data = data.drop_duplicates(subset=["ts_code", 'year'], keep="last")
-    sql_date = """
-    SELECT `ts_code` FROM %s WHERE `year`='%s'
-    """ % (table_name, cur_year)
+
+    old_len = 0
     try:
+        sql_date = """
+            SELECT `ts_code` FROM %s WHERE `year`='%s'
+        """ % (table_name, cur_year)
         exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
-        date_set = set(exist_dates.ts_code)
-        data = data[-data['ts_code'].isin(date_set)]
+        old_len = len(exist_dates)
+        clear_sql = """
+            DELETE from %s WHERE `year`='%s'
+        """ % (table_name, cur_year)
+        common.insert(clear_sql)
     except sqlalchemy.exc.ProgrammingError:
         pass
+
     if len(data) > 0:
         try:
             common.insert_db(data, table_name, False, "`ts_code`,`year`")
         except sqlalchemy.exc.IntegrityError:
             pass
-    else:
+    if old_len >= len(data):
         logger.debug("guess %s: no new stock is found", table_name)
 
 
@@ -491,7 +497,7 @@ def defensive_weak_main(tmp_datetime, max_year=6):
         INNER JOIN (select t_eps1.ts_code, (new_eps / {peer_num}) as average_income from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > {cur_year_peer}0101 and end_date like "%%1231" and end_date < {cur_year}0101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > {start_year}0101 and end_date like "%%1231" and end_date < {start_year_peer}0101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and
                         old_eps > 0 and (new_eps / old_eps) > 1.5
         ) ts_income on ts_b.ts_code = ts_income.ts_code and end_date = "{last_year}1231" and total_assets > 2010001000 and
-        total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 1.3)) and
+        total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 1.5)) and
         ts_b.ts_code in (
             select ts_code from ts_pro_fina_indicator where end_date > {half_year}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and roe>10 group by ts_code having count(distinct year(end_date)) >= {half_num} and
             ts_code in (
@@ -518,7 +524,7 @@ def defensive_weak_main(tmp_datetime, max_year=6):
 if __name__ == '__main__':
     # 使用方法传递。
     logger.info('begin')
-    update_current_year()
+    # update_current_year()
     common.run_with_args(defensive_main)
     common.run_with_args(buffett_main)
     common.run_with_args(defensive_weak_main)
