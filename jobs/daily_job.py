@@ -132,7 +132,12 @@ def daily_defensive(tmp_datetime):
         查看当前类型:  show columns from ts_pro_fina_indicator;
         例如: alter table ts_pro_fina_indicator modify column gross_margin REAL;
     """
-    cur_day = int(tmp_datetime.strftime("%Y%m%d")) - 1
+    cur_day = int(tmp_datetime.strftime("%Y%m%d"))
+    cur_hour = int(tmp_datetime.strftime("%H"))
+    print(cur_hour)
+    if cur_hour < 17:
+        cur_day = int((tmp_datetime - datetime.timedelta(days=1)).strftime("%Y%m%d"))
+
     print(cur_day)
     # 由于defensive的ROE是15，高成长，所以放宽标准到40
     daily_common(cur_day, "ts_res_defensive", 40)
