@@ -133,8 +133,7 @@ def daily_defensive(tmp_datetime):
     """
     cur_day = int(tmp_datetime.strftime("%Y%m%d")) - 1
     print(cur_day)
-    # table_name = "ts_res_buffett"
-    # 由于defensive的ROE是15，高成长，所以放宽标准
+    # 由于defensive的ROE是15，高成长，所以放宽标准到40
     daily_common(cur_day, "ts_res_defensive", 40)
     # 由于buffett的ROE是10年连续20，牛逼的成长，所以放宽标准到50
     daily_common(cur_day, "ts_res_buffett", 50)
