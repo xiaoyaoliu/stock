@@ -109,6 +109,7 @@ def daily_common(cur_day, res_table, standard):
 
     data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
     data = data.drop_duplicates(subset="ts_code", keep="last")
+    logger.debug(res_table)
     logger.debug(data)
 
 
@@ -137,7 +138,8 @@ def daily_defensive(tmp_datetime):
     daily_common(cur_day, "ts_res_defensive", 40)
     # 由于buffett的ROE是10年连续20，牛逼的成长，所以放宽标准到50
     daily_common(cur_day, "ts_res_buffett", 50)
-
+    # 最近3年ROE为10以上的企业，中等成长，严格执行标准22.5
+    daily_common(cur_day, "ts_res_defensive_weak", 22.5)
 
 
 # main函数入口
