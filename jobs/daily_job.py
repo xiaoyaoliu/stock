@@ -123,7 +123,7 @@ def daily_defensive(tmp_datetime):
 
     sql_pro = """
     select tb_res.ts_code, name, area, industry, market, list_date, (total_mv * 10000 / ledger_asset) as pb, (total_mv * 10000 / average_income) as pe from {res_table} tb_res INNER JOIN
-    ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code
+    ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code where (pb * pe) < 50
 """.format(
         res_table=table_name
     )
