@@ -97,7 +97,7 @@ def stat_pro_basics(tmp_datetime):
     else:
         logger.debug("no data . stock_basics")
 
-def daily_defensive():
+def daily_defensive(tmp_datetime):
     """
     6. 适度的市盈率，当期股价不应该高于过去3年平均利润的15倍
         股价比较动态, 这个指标要每周跑一次了。
