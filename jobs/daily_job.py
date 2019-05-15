@@ -11,6 +11,7 @@ import pandas as pd
 import tushare as ts
 from sqlalchemy.types import NVARCHAR
 from sqlalchemy import inspect
+import sqlalchemy
 import datetime
 import shutil
 
