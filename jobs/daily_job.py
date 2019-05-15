@@ -50,7 +50,7 @@ def stat_pro_basics(tmp_datetime):
     Pandas：让你像写SQL一样做数据分析（一）: https://www.cnblogs.com/en-heng/p/5630849.html
     """
     pro = ts.pro_api()
-    cur_day = int(tmp_datetime.strftime("%Y%M%D")) - 1
+    cur_day = int(tmp_datetime.strftime("%Y%m%d")) - 1
     print(cur_day)
     data = pro.daily_basic(trade_date=cur_day)
     try:
