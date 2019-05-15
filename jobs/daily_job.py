@@ -124,12 +124,8 @@ def daily_defensive(tmp_datetime):
     select tb_res.ts_code, name, area, industry, market, list_date, (total_mv * 10000 / ledger_asset) as pb, (total_mv * 1000 / average_income) as pe from {res_table} tb_res INNER JOIN
     ts_pro_daily on ts_res.ts_code = ts_pro_daily.ts_code
 """.format(
-        start_year=start_year, start_year_peer=start_year+peer_num,
-        cur_year=cur_year, last_year=cur_year-1, cur_year_peer= cur_year-peer_num,
-        peer_num=peer_num, max_year=max_year,
-        dividend_num=max_year-1
+        res_table=table_name
     )
-
 
     data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
     data = data.drop_duplicates(subset="ts_code", keep="last")
