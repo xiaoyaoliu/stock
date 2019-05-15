@@ -129,9 +129,7 @@ def daily_defensive(tmp_datetime):
 
     data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
     data = data.drop_duplicates(subset="ts_code", keep="last")
-    data.insert(0, "year", [cur_year] * len(data))
     logger.debug(data)
-
 
 
 
