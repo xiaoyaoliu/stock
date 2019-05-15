@@ -118,10 +118,11 @@ def daily_defensive(tmp_datetime):
     """
     cur_day = int(tmp_datetime.strftime("%Y%m%d")) - 1
     print(cur_day)
-    table_name = "ts_res_buffett"
+    # table_name = "ts_res_buffett"
+    table_name = "ts_res_defensive"
 
     sql_pro = """
-    select tb_res.ts_code, name, area, industry, market, list_date, (total_mv * 10000 / ledger_asset) as pb, (total_mv * 1000 / average_income) as pe from {res_table} tb_res INNER JOIN
+    select tb_res.ts_code, name, area, industry, market, list_date, (total_mv * 10000 / ledger_asset) as pb, (total_mv * 10000 / average_income) as pe from {res_table} tb_res INNER JOIN
     ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code
 """.format(
         res_table=table_name
