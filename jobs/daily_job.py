@@ -69,14 +69,21 @@ def stat_all(tmp_datetime):
 
     print(datetime_str)
 
+def get_cur_day(tmp_datetime):
+    cur_day = int(tmp_datetime.strftime("%Y%m%d"))
+    cur_hour = int(tmp_datetime.strftime("%H"))
+    print(cur_hour)
+    if cur_hour < 17:
+        cur_day = int((tmp_datetime - datetime.timedelta(days=1)).strftime("%Y%m%d"))
+    return cur_day
+
 
 def stat_pro_basics(tmp_datetime):
     """
     Pandas：让你像写SQL一样做数据分析（一）: https://www.cnblogs.com/en-heng/p/5630849.html
     """
     pro = ts.pro_api()
-    cur_day = int(tmp_datetime.strftime("%Y%m%d"))
-    print(cur_day)
+    cur_day = get_cur_day(tmp_datetime)
     data = pro.daily_basic(trade_date=cur_day)
     try:
         sql_1 = """
@@ -132,12 +139,8 @@ def daily_defensive(tmp_datetime):
         查看当前类型:  show columns from ts_pro_fina_indicator;
         例如: alter table ts_pro_fina_indicator modify column gross_margin REAL;
     """
-    cur_day = int(tmp_datetime.strftime("%Y%m%d"))
-    cur_hour = int(tmp_datetime.strftime("%H"))
-    print(cur_hour)
-    if cur_hour < 17:
-        cur_day = int((tmp_datetime - datetime.timedelta(days=1)).strftime("%Y%m%d"))
 
+    cur_day = get_cur_day(tmp_datetime)
     print(cur_day)
     # 由于defensive的ROE是15，高成长，所以放宽标准到40
     daily_common(cur_day, "ts_res_defensive", 40)
