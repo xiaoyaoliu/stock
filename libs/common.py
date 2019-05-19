@@ -204,6 +204,7 @@ def get_columns(table_name):
     """ % table_name
     data = pd.read_sql(sql=sql_1, con=engine(), params=[])
     pri_columns = data[data['Key'] == 'PRI'].Field
+    pri_columns = [_ for _ in pri_columns]
     plain_columns = data[-data['Field'].isin(pri_columns)].Field
     return (pri_columns, plain_columns)
 
