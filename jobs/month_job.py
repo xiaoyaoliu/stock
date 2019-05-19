@@ -136,7 +136,10 @@ def stat_fina_field(tmp_datetime, method, field, max_year=11):
                             fields_set.append("%s=%s" % (_, f_val))
                 if fields_set:
                     update_sql = "UPDATE {table_name}  SET {fields_set} WHERE ts_code='{ts_code}' AND end_date='{end_date}'".format(
-                            table_name, ', '.join(fields_set), row.ts_code, row.end_date
+                        table_name = table_name,
+                        fields_set = ', '.join(fields_set),
+                        ts_code = row.ts_code,
+                        end_date = row.end_date
                     )
                     common.insert(update_sql)
 
