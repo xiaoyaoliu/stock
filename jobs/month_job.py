@@ -528,11 +528,16 @@ def defensive_weak_main(tmp_datetime, max_year=6):
     )
     gen_res_common("ts_res_defensive_weak", sql_pro, cur_year)
 
+def defensive_research_main(tmp_datetime, max_year=6):
+    """
+    TODO: 条件放宽松的defensive版本 + 研发投入比较高的公司
+    """
+    pass
+
 
 # main函数入口
 if __name__ == '__main__':
     # 使用方法传递。
-    logger.info('begin')
     update_current_year()
     common.run_with_args(defensive_main)
     common.run_with_args(buffett_main)
