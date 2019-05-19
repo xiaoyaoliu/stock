@@ -103,7 +103,7 @@ def InsertOrUpdateData(data, ts_code, table_name, i, total_num, sqlCol):
     else:
         logger.debug("no data . method=%s ts_code=%s", method, ts_code)
 
-def stat_fina(tmp_datetime, method, max_year=11, plain_columns=None):
+def stat_fina(tmp_datetime, method, max_year=11):
     sql_1 = """
     SELECT `ts_code` FROM ts_pro_basics
     """
@@ -117,8 +117,6 @@ def stat_fina(tmp_datetime, method, max_year=11, plain_columns=None):
     table_name = "ts_pro_%s" % method
     sqlCol = common.get_columns(table_name)
     fields = sqlCol.columns
-    if plain_columns is not None:
-        sqlCol.plains = plain_columns
 
     for i, ts_code in enumerate(data_basic.ts_code):
         try:
@@ -128,11 +126,10 @@ def stat_fina(tmp_datetime, method, max_year=11, plain_columns=None):
             logger.info("\ndone %s", ts_code)
         result = InsertOrUpdateData(data, ts_code, table_name, i, len(data_basic), sqlCol)
         # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
-        if plain_columns is not None:
-            time.sleep(1)
+        time.sleep(1)
 
 def stat_fina_indicator(tmp_datetime):
-    stat_fina(tmp_datetime, "fina_indicator", 11, [])
+    stat_fina(tmp_datetime, "fina_indicator", 11)
 
 
 def stat_income(tmp_datetime):

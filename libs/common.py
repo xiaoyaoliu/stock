@@ -220,6 +220,8 @@ def get_columns(table_name):
 
 def update_sql(table_name, row, sqlCol):
     fields_set = []
+    if not sqlCol.plains:
+        return
     for _ in sqlCol.plains:
         f_val = getattr(row, _, None)
         if f_val:
@@ -229,8 +231,9 @@ def update_sql(table_name, row, sqlCol):
                 import numpy
                 if not numpy.isnan(f_val):
                     fields_set.append("%s=%s" % (_, f_val))
+    assert(sqlCol.pris)
     pri_set = []
-    for _ in sqlCol.plains:
+    for _ in sqlCol.pris:
         f_val = getattr(row, _, None)
         if f_val:
             if isinstance(f_val, str):
