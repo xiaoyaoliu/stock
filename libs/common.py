@@ -202,7 +202,7 @@ def get_columns(table_name):
     sql_1 = """
     SHOW columns FROM %s
     """ % table_name
-    data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
+    data = pd.read_sql(sql=sql_1, con=engine(), params=[])
     pri_columns = data[data['Key'] == 'PRI'].Field
     plain_columns = data[-data['Field'].isin(pri_columns)].Field
     return (pri_columns, plain_columns)
