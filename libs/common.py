@@ -198,6 +198,15 @@ def get_hist_data_cache(code, date_start, date_end):
         stock.to_pickle(cache_file, compression="gzip")
         return stock
 
+class SqlColumns(object):
+    def __init__(self, pris, plains):
+        self.pris = pris
+        self.plains = plains
+
+    @property
+    def columns():
+        return self.pris + self.plains
+
 def get_columns(table_name):
     sql_1 = """
     SHOW columns FROM %s
@@ -207,11 +216,11 @@ def get_columns(table_name):
     plain_columns = data[-data['Field'].isin(pri_columns)].Field
     pri_columns = [_ for _ in pri_columns]
     plain_columns = [_ for _ in plain_columns]
-    return (pri_columns, plain_columns)
+    return SqlColumns(pri_columns, plain_columns)
 
-def update_sql(table_name, row, plain_columns, pri_columns):
+def update_sql(table_name, row, sqlCol):
     fields_set = []
-    for _ in plain_columns:
+    for _ in sqlCol.plains:
         f_val = getattr(row, _, None)
         if f_val:
             if isinstance(f_val, str):
@@ -221,7 +230,7 @@ def update_sql(table_name, row, plain_columns, pri_columns):
                 if not numpy.isnan(f_val):
                     fields_set.append("%s=%s" % (_, f_val))
     pri_set = []
-    for _ in pri_columns:
+    for _ in sqlCol.plains:
         f_val = getattr(row, _, None)
         if f_val:
             if isinstance(f_val, str):
