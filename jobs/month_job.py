@@ -74,6 +74,7 @@ def stat_pro_basics(tmp_datetime):
     else:
         logger.debug("no data . stock_basics")
 
+
 def stat_fina(tmp_datetime, method, max_year=11):
     sql_1 = """
     SELECT `ts_code` FROM ts_pro_basics
@@ -85,39 +86,9 @@ def stat_fina(tmp_datetime, method, max_year=11):
     cur_year = int((tmp_datetime).strftime("%Y"))
     start_year = cur_year - max_year
     start_date = "%s1231" % start_year
-
-    for ts_code in data.ts_code:
-        try:
-            data = getattr(pro, method)(ts_code=ts_code, start_date=start_date)
-        except IOError:
-            data = None
-        if not data is None and len(data) > 0:
-            logger.info("\ndone %s", ts_code)
-            data.head(n=1)
-            data = data.drop_duplicates(subset=["ts_code", 'end_date'], keep="last")
-            try:
-                common.insert_db(data, "ts_pro_%s" % method, False, "`ts_code`,`end_date`")
-            except sqlalchemy.exc.IntegrityError:
-                pass
-        else:
-            logger.debug("\nno data . method=%s ts_code=%s", method, ts_code)
-        # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
-        time.sleep(1)
-
-def stat_fina_field(tmp_datetime, method, field, max_year=11):
-    sql_1 = """
-    SELECT `ts_code` FROM ts_pro_basics
-    """
-    data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
-    data = data.drop_duplicates(subset="ts_code", keep="last")
-    logger.debug("######## len data ########: %s", len(data))
-    pro = ts.pro_api()
-    cur_year = int((tmp_datetime).strftime("%Y"))
-    start_year = cur_year - max_year
-    start_date = "%s1231" % start_year
-    fields = ['ts_code', 'end_date']
-    fields += field
     table_name = "ts_pro_%s" % method
+    pri_columns, plain_columns = common.get_columns(table_name)
+    fields = pri_columns + plain_columns
 
     for ts_code in data.ts_code:
         try:
@@ -125,35 +96,26 @@ def stat_fina_field(tmp_datetime, method, field, max_year=11):
         except IOError:
             data = None
         if not data is None and len(data) > 0:
-            for i, row in data.iterrows():
-                fields_set = []
-                for _ in field:
-                    f_val = getattr(row, _, None)
-                    if f_val:
-                        if isinstance(f_val, str):
-                            fields_set.append("%s='%s'" % (_, f_val))
-                        else:
-                            import numpy
-                            if not numpy.isnan(f_val):
-                                fields_set.append("%s=%s" % (_, f_val))
-                if fields_set:
-                    update_sql = "UPDATE {table_name}  SET {fields_set} WHERE ts_code='{ts_code}' AND end_date='{end_date}'".format(
-                        table_name = table_name,
-                        fields_set = ', '.join(fields_set),
-                        ts_code = row.ts_code,
-                        end_date = row.end_date
-                    )
-                    common.insert(update_sql)
-
+            try:
+                sql_date = """
+                    SELECT `end_date` FROM %s WHERE `ts_code`='%s'
+                    """ % (table_name, ts_code)
+                exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
+                date_set = set(exist_dates.end_date)
+                data_to_update = data[data['end_date'].isin(date_set)]
+                data = data[-data['end_date'].isin(date_set)]
+            except sqlalchemy.exc.ProgrammingError:
+                pass
+            if len(data) > 0:
+                common.insert_db(data, "ts_pro_%s" % method, False, "`ts_code`,`end_date`")
+            if len(data_to_update) > 0:
+                for i, row in data_to_update.iterrows():
+                    common.update_sql(table_name, row, plain_columns, pri_columns)
             logger.info("\ndone %s", ts_code)
         else:
             logger.debug("\nno data . method=%s ts_code=%s", method, ts_code)
         # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
         time.sleep(1)
-
-def stat_fina_indicator_rd_exp(tmp_datetime):
-    stat_fina_field(tmp_datetime, "fina_indicator", ['rd_exp'])
-
 
 def stat_fina_indicator(tmp_datetime):
     stat_fina(tmp_datetime, "fina_indicator", 11)
@@ -213,6 +175,7 @@ def stat_current_fina(tmp_datetime, method):
                     """ % (table_name, ts_code)
                 exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
                 date_set = set(exist_dates.end_date)
+                data_to_update = data[data['end_date'].isin(date_set)]
                 data = data[-data['end_date'].isin(date_set)]
             except sqlalchemy.exc.ProgrammingError:
                 pass
@@ -579,4 +542,4 @@ if __name__ == '__main__':
     # common.run_with_args(defensive_main)
     # common.run_with_args(buffett_main)
     # common.run_with_args(defensive_weak_main)
-    common.run_with_args(stat_fina_indicator_rd_exp)
+    common.run_with_args(stat_fina_indicator)

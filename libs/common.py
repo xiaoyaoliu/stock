@@ -197,3 +197,44 @@ def get_hist_data_cache(code, date_start, date_end):
         stock = stock.sort_index(0)  # 将数据按照日期排序下。
         stock.to_pickle(cache_file, compression="gzip")
         return stock
+
+def get_columns(table_name):
+    sql_1 = """
+    SHOW columns FROM %s
+    """ % table_name
+    data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
+    pri_columns = data[data['Key'] == 'PRI'].Field
+    plain_columns = data[-data['Field'].isin(pri_columns)].Field
+    return (pri_columns, plain_columns)
+
+def update_sql(table_name, row, plain_columns, pri_columns):
+    fields_set = []
+    for _ in plain_columns:
+        f_val = getattr(row, _, None)
+        if f_val:
+            if isinstance(f_val, str):
+                fields_set.append("%s='%s'" % (_, f_val))
+            else:
+                import numpy
+                if not numpy.isnan(f_val):
+                    fields_set.append("%s=%s" % (_, f_val))
+    pri_set = []
+    for _ in pri_columns:
+        f_val = getattr(row, _, None)
+        if f_val:
+            if isinstance(f_val, str):
+                pri_set.append("%s='%s'" % (_, f_val))
+            else:
+                import numpy
+                if not numpy.isnan(f_val):
+                    pri_set.append("%s=%s" % (_, f_val))
+
+    if fields_set and pri_set:
+        update_sql = "UPDATE {table_name}  SET {fields_set} WHERE {pri_set}".format(
+            table_name = table_name,
+            fields_set = ', '.join(fields_set),
+            pri_set = " AND ".join(pri_set)
+        )
+        print(update_sql)
+        insert(update_sql)
+
