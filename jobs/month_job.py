@@ -92,7 +92,7 @@ def stat_fina(tmp_datetime, method, max_year=11):
         except IOError:
             data = None
         if not data is None and len(data) > 0:
-            logger.info("\ndone", ts_code)
+            logger.info("\ndone %s", ts_code)
             data.head(n=1)
             data = data.drop_duplicates(subset=["ts_code", 'end_date'], keep="last")
             try:
@@ -145,7 +145,7 @@ def stat_fina_field(tmp_datetime, method, field, max_year=11):
                     )
                     common.insert(update_sql)
 
-            logger.info("\ndone", ts_code)
+            logger.info("\ndone %s", ts_code)
         else:
             logger.debug("\nno data . method=%s ts_code=%s", method, ts_code)
         # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
