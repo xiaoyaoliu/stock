@@ -204,7 +204,7 @@ class SqlColumns(object):
         self.plains = plains
 
     @property
-    def columns():
+    def columns(self):
         return self.pris + self.plains
 
 def get_columns(table_name):
