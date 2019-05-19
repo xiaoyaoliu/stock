@@ -104,6 +104,52 @@ def stat_fina(tmp_datetime, method, max_year=11):
         # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
         time.sleep(1)
 
+def stat_fina_field(tmp_datetime, method, field):
+    sql_1 = """
+    SELECT `ts_code` FROM ts_pro_basics
+    """
+    data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
+    data = data.drop_duplicates(subset="ts_code", keep="last")
+    logger.debug("######## len data ########: %s", len(data))
+    pro = ts.pro_api()
+    cur_year = int((tmp_datetime).strftime("%Y"))
+    start_year = cur_year - max_year
+    start_date = "%s1231" % start_year
+    fields = ['ts_code', 'end_date']
+    fields += field
+    table_name = "ts_pro_%s" % method
+
+    for ts_code in data.ts_code:
+        try:
+            data = getattr(pro, method)(ts_code=ts_code, start_date=start_date, fields=','.join(fields))
+        except IOError:
+            data = None
+        if not data is None and len(data) > 0:
+            for i, row in data.iterrows():
+                fields_set = []
+                for _ in field:
+                    f_val = getattr(row, _, None):
+                    if f_val:
+                        if isinstance(f_val, str):
+                            fields_set.append("%s='%s'" % (_, f_val))
+                        else:
+                            fields_set.append("%s=%s" % (_, f_val))
+                if fields_set:
+                    update_sql = "UPDATE {table_name}  SET {fields_set} WHERE ts_code='{ts_code}' AND end_date='{end_date}'".format(
+                            table_name, ', '.join(fields_set), row.ts_code, row.end_date
+                    )
+                    common.insert(update_sql)
+
+            logger.info("\ndone", ts_code)
+        else:
+            logger.debug("\nno data . method=%s ts_code=%s", method, ts_code)
+        # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
+        time.sleep(1)
+
+def stat_fina_indicator_rd_exp(tmp_datetime):
+    stat_fina_field(tmp_datetime, "fina_indicator", ['rd_exp'])
+
+
 def stat_fina_indicator(tmp_datetime):
     stat_fina(tmp_datetime, "fina_indicator", 11)
 
@@ -524,7 +570,8 @@ def defensive_weak_main(tmp_datetime, max_year=6):
 if __name__ == '__main__':
     # 使用方法传递。
     logger.info('begin')
-    update_current_year()
-    common.run_with_args(defensive_main)
-    common.run_with_args(buffett_main)
-    common.run_with_args(defensive_weak_main)
+    # update_current_year()
+    # common.run_with_args(defensive_main)
+    # common.run_with_args(buffett_main)
+    # common.run_with_args(defensive_weak_main)
+    common.run_with_args(stat_fina_indicator_rd_exp)
