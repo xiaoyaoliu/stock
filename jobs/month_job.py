@@ -133,7 +133,9 @@ def stat_fina_field(tmp_datetime, method, field, max_year=11):
                         if isinstance(f_val, str):
                             fields_set.append("%s='%s'" % (_, f_val))
                         else:
-                            fields_set.append("%s=%s" % (_, f_val))
+                            import numpy
+                            if not numpy.isnan(f_val):
+                                fields_set.append("%s=%s" % (_, f_val))
                 if fields_set:
                     update_sql = "UPDATE {table_name}  SET {fields_set} WHERE ts_code='{ts_code}' AND end_date='{end_date}'".format(
                         table_name = table_name,
