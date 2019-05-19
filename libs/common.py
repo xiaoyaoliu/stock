@@ -210,7 +210,7 @@ def get_columns(table_name):
     [print(_) for _ in pri_columns]
     plain_columns = data[-data['Field'].isin(pri_columns)].Field
     pri_columns = [_ for _ in pri_columns]
-    print(pri_columns)
+    plain_columns = [_ for _ in plain_columns]
     return (pri_columns, plain_columns)
 
 def update_sql(table_name, row, plain_columns, pri_columns):
