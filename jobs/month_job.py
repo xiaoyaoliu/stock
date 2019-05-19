@@ -128,7 +128,7 @@ def stat_fina_field(tmp_datetime, method, field):
             for i, row in data.iterrows():
                 fields_set = []
                 for _ in field:
-                    f_val = getattr(row, _, None):
+                    f_val = getattr(row, _, None)
                     if f_val:
                         if isinstance(f_val, str):
                             fields_set.append("%s='%s'" % (_, f_val))
