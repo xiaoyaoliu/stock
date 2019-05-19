@@ -104,7 +104,7 @@ def stat_fina(tmp_datetime, method, max_year=11):
         # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
         time.sleep(1)
 
-def stat_fina_field(tmp_datetime, method, field):
+def stat_fina_field(tmp_datetime, method, field, max_year=11):
     sql_1 = """
     SELECT `ts_code` FROM ts_pro_basics
     """
