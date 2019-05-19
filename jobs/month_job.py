@@ -101,7 +101,7 @@ def InsertOrUpdateData(data, ts_code, table_name, i, total_num, sqlCol):
         logger.info("Table %s: insert %s, %s / %s", table_name, ts_code, i, total_num)
         return ts_code
     else:
-        logger.debug("no data . method=%s ts_code=%s", method, ts_code)
+        logger.debug("no data . table=%s ts_code=%s", table_name, ts_code)
 
 def stat_fina(tmp_datetime, method, max_year=11):
     sql_1 = """
