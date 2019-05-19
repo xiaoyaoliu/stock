@@ -74,6 +74,34 @@ def stat_pro_basics(tmp_datetime):
     else:
         logger.debug("no data . stock_basics")
 
+def InsertOrUpdateData(data, ts_code, table_name, i, total_num):
+    if not data is None and len(data) > 0:
+        # logger.info("Table %s: insert %s, %s(%s) / %s", table_name, ts_code, i, len(exist_data) + len(new_code), len(basic_data))
+        data.head(n=1)
+        data = data.drop_duplicates(subset=["ts_code", 'end_date'], keep="last")
+        try:
+            sql_date = """
+                SELECT `end_date` FROM %s WHERE `ts_code`='%s'
+                """ % (table_name, ts_code)
+            exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
+            date_set = set(exist_dates.end_date)
+            data_to_update = data[data['end_date'].isin(date_set)]
+            data = data[-data['end_date'].isin(date_set)]
+        except sqlalchemy.exc.ProgrammingError:
+            pass
+        if len(data) > 0:
+            try:
+                common.insert_db(data, table_name, False, "`ts_code`,`end_date`")
+            except sqlalchemy.exc.IntegrityError:
+                pass
+        if len(data_to_update) > 0:
+                for i, row in data_to_update.iterrows():
+                    common.update_sql(table_name, row, plain_columns, pri_columns)
+
+        logger.info("Table %s: insert %s, %s / %s", table_name, ts_code, i, total_num)
+        return ts_code
+    else:
+        logger.debug("no data . method=%s ts_code=%s", method, ts_code)
 
 def stat_fina(tmp_datetime, method, max_year=11):
     sql_1 = """
@@ -89,32 +117,14 @@ def stat_fina(tmp_datetime, method, max_year=11):
     table_name = "ts_pro_%s" % method
     pri_columns, plain_columns = common.get_columns(table_name)
     fields = pri_columns + plain_columns
-    print(pri_columns, plain_columns)
 
-    for ts_code in data.ts_code:
+    for i, ts_code in enumerate(data.ts_code):
         try:
             data = getattr(pro, method)(ts_code=ts_code, start_date=start_date, fields=','.join(fields))
         except IOError:
             data = None
-        if not data is None and len(data) > 0:
-            try:
-                sql_date = """
-                    SELECT `end_date` FROM %s WHERE `ts_code`='%s'
-                    """ % (table_name, ts_code)
-                exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
-                date_set = set(exist_dates.end_date)
-                data_to_update = data[data['end_date'].isin(date_set)]
-                data = data[-data['end_date'].isin(date_set)]
-            except sqlalchemy.exc.ProgrammingError:
-                pass
-            if len(data) > 0:
-                common.insert_db(data, "ts_pro_%s" % method, False, "`ts_code`,`end_date`")
-            if len(data_to_update) > 0:
-                for i, row in data_to_update.iterrows():
-                    common.update_sql(table_name, row, plain_columns, pri_columns)
             logger.info("\ndone %s", ts_code)
-        else:
-            logger.debug("\nno data . method=%s ts_code=%s", method, ts_code)
+        result = InsertOrUpdateData(data, ts_code, table_name, i, len(data))
         # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
         time.sleep(1)
 
@@ -159,35 +169,20 @@ def stat_current_fina(tmp_datetime, method):
 
     new_code = []
 
+    pri_columns, plain_columns = common.get_columns(table_name)
+    fields = pri_columns + plain_columns
+
     for i, ts_code in enumerate(basic_data.ts_code):
         if ts_code in exist_set:
             continue
         try:
-            data = getattr(pro, method)(ts_code=ts_code, start_date=cur_date)
+            data = getattr(pro, method)(ts_code=ts_code, start_date=cur_date, fields=','.join(fields))
         except IOError:
             data = None
-        if not data is None and len(data) > 0:
-            logger.info("Table %s: insert %s, %s(%s) / %s", table_name, ts_code, i, len(exist_data) + len(new_code), len(basic_data))
-            data.head(n=1)
-            data = data.drop_duplicates(subset=["ts_code", 'end_date'], keep="last")
-            try:
-                sql_date = """
-                    SELECT `end_date` FROM %s WHERE `ts_code`='%s'
-                    """ % (table_name, ts_code)
-                exist_dates = pd.read_sql(sql=sql_date, con=common.engine(), params=[])
-                date_set = set(exist_dates.end_date)
-                data_to_update = data[data['end_date'].isin(date_set)]
-                data = data[-data['end_date'].isin(date_set)]
-            except sqlalchemy.exc.ProgrammingError:
-                pass
-            if len(data) > 0:
-                try:
-                    common.insert_db(data, table_name, False, "`ts_code`,`end_date`")
-                    new_code.append(ts_code)
-                except sqlalchemy.exc.IntegrityError:
-                    pass
-        else:
-            logger.debug("no data . method=%s ts_code=%s", method, ts_code)
+
+        result = InsertOrUpdateData(data, ts_code, table_name, i, len(basic_data))
+        if result:
+            new_code.append(ts_code)
         # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
         time.sleep(1)
 

@@ -204,10 +204,6 @@ def get_columns(table_name):
     """ % table_name
     data = pd.read_sql(sql=sql_1, con=engine(), params=[])
     pri_columns = data[data['Key'] == 'PRI'].Field
-    # pri_columns = [_ for _ in pri_columns]
-    # print([_ for _ in dir(data) if 'field' in _.lower()])
-    print(len(pri_columns))
-    [print(_) for _ in pri_columns]
     plain_columns = data[-data['Field'].isin(pri_columns)].Field
     pri_columns = [_ for _ in pri_columns]
     plain_columns = [_ for _ in plain_columns]
@@ -235,12 +231,12 @@ def update_sql(table_name, row, plain_columns, pri_columns):
                 if not numpy.isnan(f_val):
                     pri_set.append("%s=%s" % (_, f_val))
 
+    assert(len(pri_set) > 0)
     if fields_set and pri_set:
         update_sql = "UPDATE {table_name}  SET {fields_set} WHERE {pri_set}".format(
             table_name = table_name,
             fields_set = ', '.join(fields_set),
             pri_set = " AND ".join(pri_set)
         )
-        print(update_sql)
         insert(update_sql)
 
