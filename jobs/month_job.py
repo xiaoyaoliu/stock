@@ -103,32 +103,36 @@ def InsertOrUpdateData(data, ts_code, table_name, i, total_num, sqlCol):
     else:
         logger.debug("no data . method=%s ts_code=%s", method, ts_code)
 
-def stat_fina(tmp_datetime, method, max_year=11):
+def stat_fina(tmp_datetime, method, max_year=11, plain_columns=None):
     sql_1 = """
     SELECT `ts_code` FROM ts_pro_basics
     """
-    data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
-    data = data.drop_duplicates(subset="ts_code", keep="last")
-    logger.debug("######## len data ########: %s", len(data))
+    data_basic = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
+    data_basic = data_basic.drop_duplicates(subset="ts_code", keep="last")
+    logger.debug("######## len data_basic ########: %s", len(data_basic))
     pro = ts.pro_api()
     cur_year = int((tmp_datetime).strftime("%Y"))
     start_year = cur_year - max_year
     start_date = "%s1231" % start_year
     table_name = "ts_pro_%s" % method
     sqlCol = common.get_columns(table_name)
+    fields = sqlCol.columns
+    if plain_columns is not None:
+        sqlCol.plains = plain_columns
 
-    for i, ts_code in enumerate(data.ts_code):
+    for i, ts_code in enumerate(data_basic.ts_code):
         try:
-            data = getattr(pro, method)(ts_code=ts_code, start_date=start_date, fields=','.join(sqlCol.columns))
+            data = getattr(pro, method)(ts_code=ts_code, start_date=start_date, fields=','.join(fields))
         except IOError:
             data = None
             logger.info("\ndone %s", ts_code)
-        result = InsertOrUpdateData(data, ts_code, table_name, i, len(data), sqlCol)
+        result = InsertOrUpdateData(data, ts_code, table_name, i, len(data_basic), sqlCol)
         # Exception: 抱歉，您每分钟最多访问该接口80次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
-        time.sleep(1)
+        if plain_columns is not None:
+            time.sleep(1)
 
 def stat_fina_indicator(tmp_datetime):
-    stat_fina(tmp_datetime, "fina_indicator", 11)
+    stat_fina(tmp_datetime, "fina_indicator", 11, [])
 
 
 def stat_income(tmp_datetime):
