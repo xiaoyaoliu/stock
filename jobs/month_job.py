@@ -89,6 +89,7 @@ def stat_fina(tmp_datetime, method, max_year=11):
     table_name = "ts_pro_%s" % method
     pri_columns, plain_columns = common.get_columns(table_name)
     fields = pri_columns + plain_columns
+    print(pri_columns, plain_columns)
 
     for ts_code in data.ts_code:
         try:
