@@ -167,7 +167,7 @@ def daily_divdend(tmp_datetime):
     # 最近3年ROE为10以上的企业，中等成长，严格执行标准22.5
     res_table = "ts_res_defensive_weak"
     standard = 22.5
-      sql_pro = """
+    sql_pro = """
     select tb_res.ts_code, name, area, industry, market, list_date, (total_mv * 10000 / ledger_asset) as pb, (total_mv * 10000 / average_income) as pe, average_cash_div_tax / (total_mv / total_share) as div_ratio from {res_table} tb_res INNER JOIN
     ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code AND trade_date='{cur_day}' WHERE (pb * pe) < {standard}
 """.format(
