@@ -502,7 +502,7 @@ def defensive_weak_main(tmp_datetime, max_year=6):
 
     sql_pro = """
     select ts_pro_basics.ts_code, symbol, name, area, industry, market, list_date, ledger_asset, average_income, average_cash_div_tax from ts_pro_basics INNER JOIN
-    (select ts_b.ts_code, (total_assets - total_liab) as ledger_asset, average_income from ts_pro_balancesheet ts_b
+    (select ts_b.ts_code, (total_assets - total_liab) as ledger_asset, average_income, average_cash_div_tax from ts_pro_balancesheet ts_b
         INNER JOIN ( select ts_eps.ts_code, average_income, average_cash_div_tax FROM
             (select t_eps1.ts_code, (new_eps / {peer_num}) as average_income from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > {cur_year_peer}0101 and end_date like "%%1231" and end_date < {cur_year}0101 group by ts_code) t_eps1
                 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > {start_year}0101 and end_date like "%%1231" and end_date < {start_year_peer}0101 group by ts_code) t_eps2
