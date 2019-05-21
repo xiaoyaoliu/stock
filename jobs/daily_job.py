@@ -87,18 +87,14 @@ def stat_pro_basics(tmp_datetime):
     data = pro.daily_basic(trade_date=cur_day)
     try:
         sql_1 = """
-        SELECT `ts_code` FROM ts_pro_daily WHERE `trade_date`='%s'
+        DELETE FROM ts_pro_daily WHERE `trade_date`='%s'
         """ % cur_day
-        exist_data = pd.read_sql(sql=sql_1, con=common.engine(), params=[])
-        exist_data = exist_data.drop_duplicates(subset="ts_code", keep="last")
-        exist_set = set(exist_data.ts_code)
+        common.insert(sql_1)
     except sqlalchemy.exc.ProgrammingError:
-        exist_set = set()
 
     if not data is None and len(data) > 0:
         data = data.drop_duplicates(subset="ts_code", keep="last")
         data.head(n=1)
-        # data = data[-data['ts_code'].isin(exist_set)]
         if len(data) > 0:
             common.insert_db(data, "ts_pro_daily", False, "`ts_code`, `trade_date`")
     else:
@@ -188,3 +184,4 @@ if __name__ == '__main__':
     # tmp_datetime = common.run_with_args(stat_all)
     tmp_datetime = common.run_with_args(stat_pro_basics)
     tmp_datetime = common.run_with_args(daily_defensive)
+    tmp_datetime = common.run_with_args(daily_divdend)
