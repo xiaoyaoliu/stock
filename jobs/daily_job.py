@@ -167,6 +167,7 @@ def daily_divdend(tmp_datetime):
     sql_pro = """
     select * from (select tb_res.ts_code, name, area, industry, market, list_date, (total_mv * 10000 / ledger_asset) as pb, (total_mv * 10000 / average_income) as pe, (average_cash_div_tax / (total_mv / total_share)) as div_ratio from {res_table} tb_res INNER JOIN
     ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code AND trade_date='{cur_day}') ts_res WHERE (pb * pe) < {standard} AND div_ratio > 0.03
+    ORDER BY div_ratio DESC, pe ASC, pb ASC
 """.format(
         res_table=res_table,
         cur_day = cur_day,
