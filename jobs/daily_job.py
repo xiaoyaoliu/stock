@@ -91,6 +91,7 @@ def stat_pro_basics(tmp_datetime):
         """ % cur_day
         common.insert(sql_1)
     except sqlalchemy.exc.ProgrammingError:
+        pass
 
     if not data is None and len(data) > 0:
         data = data.drop_duplicates(subset="ts_code", keep="last")
