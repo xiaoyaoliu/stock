@@ -106,7 +106,7 @@ def stat_pro_basics(tmp_datetime):
 
 def daily_common(cur_day, res_table, standard):
     sql_pro = """
-    select tb_res.ts_code, name, area, industry, market, list_date, (total_mv * 10000 / ledger_asset) as pb, (total_mv * 10000 / average_income) as pe from {res_table} tb_res INNER JOIN
+    select tb_res.ts_code, name, area, industry, market, list_date, (total_mv * 10000 / ledger_asset) as pb, (total_mv * 10000 / average_income) as pe, average_cash_div_tax from {res_table} tb_res INNER JOIN
     ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code AND trade_date='{cur_day}' WHERE (pb * pe) < {standard}
 """.format(
         res_table=res_table,
@@ -117,7 +117,7 @@ def daily_common(cur_day, res_table, standard):
     data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
     data = data.drop_duplicates(subset="ts_code", keep="last")
     logger.debug(res_table)
-    logger.debug(data)
+    return data
 
 
 def daily_defensive(tmp_datetime):
@@ -143,11 +143,43 @@ def daily_defensive(tmp_datetime):
     cur_day = get_cur_day(tmp_datetime)
     print(cur_day)
     # 由于defensive的ROE是15，高成长，所以放宽标准到40
-    daily_common(cur_day, "ts_res_defensive", 40)
+    data_def = daily_common(cur_day, "ts_res_defensive", 40)
+    logger.debug(data_def)
     # 由于buffett的ROE是10年连续20，牛逼的成长，所以放宽标准到50
-    daily_common(cur_day, "ts_res_buffett", 50)
+    data_buf = daily_common(cur_day, "ts_res_buffett", 50)
+    logger.debug(data_buf)
+
+
+def daily_divdend(tmp_datetime):
+    """
+    第8章 投资者与市场波动
+
+    从根本上讲，价格波动对真正的投资者只有一个重要含义，即它们使得投资者有机会在价格大幅下降时做出理智的购买决策，同时有机会在价格大幅上升时做出理智的抛售决策。
+    在除此之外的其他时间里，投资者最好忘记股市的存在，更多地关注自己的股息回报和企业的经营结果
+
+    这里，主要关注股息回报，要税前分红高于余额宝(2.38%)，所以标准为: 3%
+
     # 最近3年ROE为10以上的企业，中等成长，严格执行标准22.5
     daily_common(cur_day, "ts_res_defensive_weak", 22.5)
+    """
+
+    cur_day = get_cur_day(tmp_datetime)
+    # 最近3年ROE为10以上的企业，中等成长，严格执行标准22.5
+    res_table = "ts_res_defensive_weak"
+    standard = 22.5
+      sql_pro = """
+    select tb_res.ts_code, name, area, industry, market, list_date, (total_mv * 10000 / ledger_asset) as pb, (total_mv * 10000 / average_income) as pe, average_cash_div_tax / (total_mv / total_share) as div_ratio from {res_table} tb_res INNER JOIN
+    ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code AND trade_date='{cur_day}' WHERE (pb * pe) < {standard}
+""".format(
+        res_table=res_table,
+        cur_day = cur_day,
+        standard=standard
+    )
+
+    data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
+    data = data.drop_duplicates(subset="ts_code", keep="last")
+    logger.debug(res_table)
+    logger.debug(data)
 
 
 # main函数入口
