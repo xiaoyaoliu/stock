@@ -146,6 +146,7 @@ def daily_defensive(tmp_datetime):
     cur_day = get_cur_day(tmp_datetime)
     print(cur_day)
 
+    logger.debug("不在下面列表里的，请考虑卖出")
     # 由于defensive的ROE是15，高成长，所以买入放宽标准到40, 卖出标准为66, 市盈率25是极限。
     data_def = daily_common(cur_day, "ts_res_defensive", 66, 25)
     logger.debug(data_def)
