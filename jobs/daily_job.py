@@ -108,12 +108,13 @@ def daily_common(cur_day, res_table, standard, pe):
 
     sql_pro = """
     select *, (pb * pe) as standard from (select tb_res.ts_code, name, area, industry, market, list_date, (total_mv * 10000 / ledger_asset) as pb, (total_mv * 10000 / average_income) as pe, (average_cash_div_tax / (total_mv / total_share)) as div_ratio from {res_table} tb_res INNER JOIN
-    ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code AND trade_date='{cur_day}') ts_res WHERE (pb * pe) < {standard} AND div_ratio > 0.02
+    ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code AND trade_date='{cur_day}') ts_res WHERE (pb * pe) < {standard} AND div_ratio > 0.02 AND pe < {pe}
     ORDER BY (pb * pe) ASC, div_ratio DESC, pe ASC, pb ASC
 """.format(
         res_table=res_table,
         cur_day = cur_day,
-        standard=standard
+        standard=standard,
+        pe=pe
     )
 
     data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
@@ -145,11 +146,11 @@ def daily_defensive(tmp_datetime):
     cur_day = get_cur_day(tmp_datetime)
     print(cur_day)
 
-    # 由于defensive的ROE是15，高成长，所以放宽标准到40, 市盈率25是极限。
-    data_def = daily_common(cur_day, "ts_res_defensive", 50, 25)
+    # 由于defensive的ROE是15，高成长，所以买入放宽标准到40, 卖出标准为66, 市盈率25是极限。
+    data_def = daily_common(cur_day, "ts_res_defensive", 66, 25)
     logger.debug(data_def)
-    # 由于buffett的ROE是10年连续20，牛逼的成长，所以买入放宽标准到50, 市盈率30是极限
-    data_buf = daily_common(cur_day, "ts_res_buffett", 100, 30)
+    # 由于buffett的ROE是10年连续20，牛逼的成长，所以买入放宽标准到60, 卖出标准放宽到80。 市盈率30是极限
+    data_buf = daily_common(cur_day, "ts_res_buffett", 80, 30)
     logger.debug(data_buf)
 
 
