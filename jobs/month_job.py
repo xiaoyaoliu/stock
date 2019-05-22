@@ -423,10 +423,14 @@ def defensive_main(tmp_datetime, max_year=10):
 
 
     sql_pro = """
-    select ts_pro_basics.ts_code, symbol, name, area, industry, market, list_date, ledger_asset, average_income from ts_pro_basics INNER JOIN
-    (select ts_b.ts_code, (total_assets - total_liab) as ledger_asset, average_income from ts_pro_balancesheet ts_b
-        INNER JOIN (select t_eps1.ts_code, (new_eps / {peer_num}) as average_income from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > {cur_year_peer}0101 and end_date like "%%1231" and end_date < {cur_year}0101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > {start_year}0101 and end_date like "%%1231" and end_date < {start_year_peer}0101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and
-                        old_eps > 0 and (new_eps / old_eps) > 2
+    select ts_pro_basics.ts_code, symbol, name, area, industry, market, list_date, ledger_asset, average_income, average_cash_div_tax from ts_pro_basics INNER JOIN
+    (select ts_b.ts_code, (total_assets - total_liab) as ledger_asset, average_income, average_cash_div_tax from ts_pro_balancesheet ts_b
+        INNER JOIN (select ts_eps.ts_code, average_income, average_cash_div_tax FROM
+            (select t_eps1.ts_code, (new_eps / {peer_num}) as average_income from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > {cur_year_peer}0101 and end_date like "%%1231" and end_date < {cur_year}0101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > {start_year}0101 and end_date like "%%1231" and end_date < {start_year_peer}0101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and
+                        old_eps > 0 and (new_eps / old_eps) > 2) ts_eps
+            INNER JOIN (
+                    select ts_code, sum(cash_div_tax) / {peer_num} as average_cash_div_tax from ts_pro_dividend where end_date > {cur_year_peer}0101 and end_date < {cur_year}0101 and cash_div_tax > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= {peer_num}
+            ) ts_dividend on ts_dividend.ts_code=ts_eps.ts_code
         ) ts_income on ts_b.ts_code = ts_income.ts_code and end_date = "{last_year}1231" and total_assets > 4010001000 and
         total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0)) and
         ts_b.ts_code in (
@@ -549,6 +553,6 @@ def defensive_research_main(tmp_datetime, max_year=6):
 if __name__ == '__main__':
     # 使用方法传递。
     # update_current_year()
-    # common.run_with_args(defensive_main)
-    common.run_with_args(buffett_main)
+    common.run_with_args(defensive_main)
+    # common.run_with_args(buffett_main)
     # common.run_with_args(defensive_weak_main)
