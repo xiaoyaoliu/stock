@@ -206,10 +206,12 @@ def save_then_mail(tmp_datetime, res_data):
 <p>买入: standard &lt;&nbsp; <strong>40</strong></p>
 <p>卖出: 不在下表中的股票</p>
 {{ defensive }}
+<p>&nbsp;</p>
 <h3>ROE20建议</h3>
 <p>买入: standard &lt;&nbsp; <strong>60</strong></p>
 <p>卖出: 不在下表中的</p>
 {{ buffett }}
+<p>&nbsp;</p>
 <h3>高分红廉价股建议</h3>
 <p>买入: 排名靠前且感兴趣的行业</p>
 <p>卖出: 不在下表中的</p>
@@ -217,8 +219,16 @@ def save_then_mail(tmp_datetime, res_data):
     """)
     res = html_template.render(defensive=res_data.defensive, buffett=res_data.buffett, dividend=res_data.dividend)
     datetime_str = (tmp_datetime).strftime("%Y%m%d")
-    with open("/data/logs/mail_%s.html" % datetime_str, 'w') as fout:
+    filename = "/data/logs/mail_%s.html" % datetime_str
+    with open(filename, 'w') as fout:
         fout.write(res)
+    title = "A投资建议 %s" % datetime_str
+    mail_cmd = 'mail -a "Content-type: text/html" -s "{title}" zhangxukim@qq.com < {filename}'.format(
+        title=title,
+        filename=filename
+    )
+    import subprocess
+    subprocess.call(mail_cmd, shell=True)
 
 # main函数入口
 if __name__ == '__main__':
