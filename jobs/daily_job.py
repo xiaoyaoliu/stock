@@ -16,12 +16,19 @@ import datetime
 import shutil
 from jinja2 import Template
 
-
 import logging
 # logging.basicConfig(filename='',level=logging.DEBUG)
 # create logger
 logger = logging.getLogger('daily_job')
 logger.setLevel(logging.DEBUG)
+
+MAILS = [
+    "zhangxukim@qq.com",
+]
+
+WEEK_MAILS = [
+    "707136301@qq.com",
+]
 
 # create formatter
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -223,9 +230,16 @@ def save_then_mail(tmp_datetime, res_data):
     with open(filename, 'w') as fout:
         fout.write(res)
     title = "A投资建议 %s" % datetime_str
-    mail_cmd = 'mail -a "Content-type: text/html" -s "{title}" zhangxukim@qq.com < {filename}'.format(
+    notify_mails = MAILS
+
+    Wednesday = 2
+    if tmp_datetime.weekday() == Wednesday:
+        notify_mails += WEEK_MAILS
+
+    mail_cmd = 'mail -a "Content-type: text/html" -s "{title}" {mails} < {filename}'.format(
         title=title,
-        filename=filename
+        filename=filename,
+        mails = ' '.join(notify_mails)
     )
     import subprocess
     subprocess.call(mail_cmd, shell=True)
