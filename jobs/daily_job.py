@@ -70,11 +70,17 @@ def stat_all(tmp_datetime):
     print(datetime_str)
 
 def get_cur_day(tmp_datetime):
-    cur_day = int(tmp_datetime.strftime("%Y%m%d"))
-    cur_hour = int(tmp_datetime.strftime("%H"))
-    print(cur_hour)
-    if cur_hour < 17:
-        cur_day = int((tmp_datetime - datetime.timedelta(days=1)).strftime("%Y%m%d"))
+    # 4 == Friday
+    Friday = 4
+    if tmp_datetime.weekday() > Friday:
+        # Saturday And Sunday
+        days = tmp_datetime.weekday() - Friday
+        cur_day = int((tmp_datetime - datetime.timedelta(days=days)).strftime("%Y%m%d"))
+    else:
+        cur_day = int(tmp_datetime.strftime("%Y%m%d"))
+        cur_hour = int(tmp_datetime.strftime("%H"))
+        if cur_hour < 17:
+            cur_day = int((tmp_datetime - datetime.timedelta(days=1)).strftime("%Y%m%d"))
     return cur_day
 
 
