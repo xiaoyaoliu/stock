@@ -14,7 +14,7 @@ from sqlalchemy import inspect
 import sqlalchemy
 import datetime
 import shutil
-from jiaja2 import Template
+from jinja2 import Template
 
 
 import logging
