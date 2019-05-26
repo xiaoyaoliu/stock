@@ -146,7 +146,7 @@ def run_with_args(run_fun, *args, **kwargs):
             # time.sleep(5)
             tmp_datetime_new = tmp_datetime + datetime.timedelta(days=i)
             try:
-                return run_fun(tmp_datetime_new, args, kwargs)
+                return run_fun(tmp_datetime_new, *args, **kwargs)
             except Exception as e:
                 print("error :", e)
                 traceback.print_exc()
@@ -155,14 +155,14 @@ def run_with_args(run_fun, *args, **kwargs):
         tmp_year, tmp_month, tmp_day = sys.argv[1].split("-")
         tmp_datetime = datetime.datetime(int(tmp_year), int(tmp_month), int(tmp_day))
         try:
-            return run_fun(tmp_datetime, args, kwargs)
+            return run_fun(tmp_datetime, *args, **kwargs)
         except Exception as e:
             print("error :", e)
             traceback.print_exc()
     else:
         # tmp_datetime = datetime.datetime.now() + datetime.timedelta(days=-1)
         try:
-            return run_fun(tmp_datetime_show, args, kwargs)  # 使用当前时间
+            return run_fun(tmp_datetime_show, *args, **kwargs)  # 使用当前时间
         except Exception as e:
             print("error :", e)
             traceback.print_exc()
