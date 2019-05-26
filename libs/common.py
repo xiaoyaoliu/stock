@@ -128,7 +128,7 @@ def select_count(sql, params=()):
 
 
 # 通用函数。获得日期参数。
-def run_with_args(run_fun):
+def run_with_args(run_fun, *args, **kwargs):
     tmp_datetime_show = datetime.datetime.now()  # 修改成默认是当日执行 + datetime.timedelta()
     tmp_datetime_str = tmp_datetime_show.strftime("%Y-%m-%d %H:%M:%S.%f")
     str_db = "MYSQL_HOST :" + MYSQL_HOST + ", MYSQL_USER :" + MYSQL_USER + ", MYSQL_DB :" + MYSQL_DB
@@ -146,7 +146,7 @@ def run_with_args(run_fun):
             # time.sleep(5)
             tmp_datetime_new = tmp_datetime + datetime.timedelta(days=i)
             try:
-                run_fun(tmp_datetime_new)
+                return run_fun(tmp_datetime_new, args, kwargs)
             except Exception as e:
                 print("error :", e)
                 traceback.print_exc()
@@ -155,14 +155,14 @@ def run_with_args(run_fun):
         tmp_year, tmp_month, tmp_day = sys.argv[1].split("-")
         tmp_datetime = datetime.datetime(int(tmp_year), int(tmp_month), int(tmp_day))
         try:
-            run_fun(tmp_datetime)
+            return run_fun(tmp_datetime, args, kwargs)
         except Exception as e:
             print("error :", e)
             traceback.print_exc()
     else:
         # tmp_datetime = datetime.datetime.now() + datetime.timedelta(days=-1)
         try:
-            run_fun(tmp_datetime_show)  # 使用当前时间
+            return run_fun(tmp_datetime_show, args, kwargs)  # 使用当前时间
         except Exception as e:
             print("error :", e)
             traceback.print_exc()

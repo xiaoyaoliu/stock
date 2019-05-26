@@ -14,6 +14,8 @@ from sqlalchemy import inspect
 import sqlalchemy
 import datetime
 import shutil
+from jiaja2 import Template
+
 
 import logging
 # logging.basicConfig(filename='',level=logging.DEBUG)
@@ -39,6 +41,8 @@ file_handler.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 logger.addHandler(file_handler)
 
+class ResData(object):
+    pass
 
 
 ####### 使用 5.pdf，先做 基本面数据 的数据，然后在做交易数据。
@@ -129,7 +133,7 @@ def daily_common(cur_day, res_table, standard, pe):
     return data
 
 
-def daily_defensive(tmp_datetime):
+def daily_defensive(tmp_datetime, res_data):
     """
     6. 适度的市盈率，当期股价不应该高于过去3年平均利润的15倍
         股价比较动态, 这个指标要每周跑一次了。
@@ -156,12 +160,14 @@ def daily_defensive(tmp_datetime):
     # 由于defensive的ROE是15，高成长，所以买入放宽标准到40, 卖出标准为66, 市盈率25是极限。
     data_def = daily_common(cur_day, "ts_res_defensive", 66, 25)
     logger.debug(data_def)
+    res_data.defensive = data_def.to_html()
     # 由于buffett的ROE是10年连续20，牛逼的成长，所以买入放宽标准到60, 卖出标准放宽到80。 市盈率30是极限
     data_buf = daily_common(cur_day, "ts_res_buffett", 80, 30)
     logger.debug(data_buf)
+    res_data.buffett = data_def.to_html()
 
 
-def daily_divdend(tmp_datetime):
+def daily_divdend(tmp_datetime, res_data):
     """
     第8章 投资者与市场波动
 
@@ -192,12 +198,36 @@ def daily_divdend(tmp_datetime):
     data = data.drop_duplicates(subset="ts_code", keep="last")
     logger.debug(res_table)
     logger.debug(data)
+    res_data.dividend = data.to_html()
 
+def save_then_mail(tmp_datetime, res_data):
+    html_template = Template("""
+<h3>防御型建议</h3>
+<p>买入: standard &lt;&nbsp; <strong>40</strong></p>
+<p>卖出: 不在下表中的股票</p>
+{{ defensive }}
+<h3>ROE20建议</h3>
+<p>买入: standard &lt;&nbsp; <strong>60</strong></p>
+<p>卖出: 不在下表中的</p>
+{{ buffett }}
+<h3>高分红廉价股建议</h3>
+<p>买入: 排名靠前且感兴趣的行业</p>
+<p>卖出: 不在下表中的</p>
+{{dividend }}
+    """)
+    res = html_template.render(defensive=res_data.defensive, buffett=res_data.buffett, dividend=res_data.dividend)
+    datetime_str = (tmp_datetime).strftime("%Y%m%d")
+    with open("/data/logs/mail_%s.html" % datetime_str, 'w') as fout:
+        fout.write(res)
 
 # main函数入口
 if __name__ == '__main__':
     # 使用方法传递。
-    # tmp_datetime = common.run_with_args(stat_all)
+
     tmp_datetime = common.run_with_args(stat_pro_basics)
-    tmp_datetime = common.run_with_args(daily_defensive)
-    tmp_datetime = common.run_with_args(daily_divdend)
+    res_data = ResData()
+    tmp_datetime = common.run_with_args(daily_defensive, res_data)
+    tmp_datetime = common.run_with_args(daily_divdend, res_data)
+    tmp_datetime = common.run_with_args(save_then_mail, res_data)
+
+
