@@ -497,7 +497,7 @@ def buffett_main(tmp_datetime, max_year=10):
 
     gen_res_common("ts_res_buffett", sql_pro, cur_year)
 
-def defensive_weak_main(tmp_datetime, max_year=6):
+def defensive_weak_main(tmp_datetime, max_year=8):
     """
     条件: 条件放宽松的defensive版本
     主要用于发现市净率比较低的企业，市净率低的公司也要满足一些基本条件
@@ -506,7 +506,7 @@ def defensive_weak_main(tmp_datetime, max_year=6):
     cur_year = int((tmp_datetime).strftime("%Y"))
     start_year = cur_year - max_year
     half_num = int(max_year * 0.5)
-    peer_num = 2
+    peer_num = 3
 
     sql_pro = """
     select ts_pro_basics.ts_code, symbol, name, area, industry, market, list_date, ledger_asset, average_income, average_cash_div_tax from ts_pro_basics INNER JOIN
@@ -552,7 +552,7 @@ def defensive_research_main(tmp_datetime, max_year=6):
 # main函数入口
 if __name__ == '__main__':
     # 使用方法传递。
-    update_current_year()
-    common.run_with_args(defensive_main)
-    common.run_with_args(buffett_main)
+    # update_current_year()
+    # common.run_with_args(defensive_main)
+    # common.run_with_args(buffett_main)
     common.run_with_args(defensive_weak_main)
