@@ -111,3 +111,4 @@ doc
 pkg
 *.tmp
 *.tags
+*.temp
