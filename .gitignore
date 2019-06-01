@@ -110,3 +110,4 @@ doc
 /bin
 pkg
 *.tmp
+*.tags
