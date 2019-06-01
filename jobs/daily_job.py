@@ -130,7 +130,7 @@ def daily_common(cur_day, res_table, standard, pe, div_standard):
         res_table=res_table,
         cur_day = cur_day,
         standard=standard,
-        pe=pe
+        pe=pe,
         div_standard=div_standard
     )
 
@@ -236,7 +236,7 @@ def save_then_mail(tmp_datetime, res_data):
     res = html_template.render(
         defensive=res_data.defensive,
         buffett=res_data.buffett,
-        dividend=res_data.dividend
+        dividend=res_data.dividend,
         positive=res_data.positive
     )
     datetime_str = (tmp_datetime).strftime("%Y%m%d")
