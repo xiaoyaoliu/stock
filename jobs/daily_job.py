@@ -118,20 +118,26 @@ def stat_pro_basics(tmp_datetime):
     else:
         logger.debug("no data . stock_basics")
 
-def daily_common(cur_day, res_table, standard, pe, div_standard):
+def daily_common(cur_day, res_table, standard, pe, div_standard, pb, sort_by_standard=True):
     """
         不在此列表里的建议卖出
     """
+    if sort_by_standard:
+        sort_str = "(pb * pe) ASC, "
+    else:
+        sort_str = ""
     sql_pro = """
     select *, (pb * pe) as standard from (select tb_res.ts_code, name, area, industry, market, list_date, (total_mv * 10000 / ledger_asset) as pb, (total_mv * 10000 / average_income) as pe, (average_cash_div_tax / (total_mv / total_share)) as div_ratio from {res_table} tb_res INNER JOIN
-    ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code AND trade_date='{cur_day}') ts_res WHERE (pb * pe) < {standard} AND div_ratio > {div_standard} AND pe < {pe}
-    ORDER BY (pb * pe) ASC, div_ratio DESC, pe ASC, pb ASC
+    ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code AND trade_date='{cur_day}') ts_res WHERE (pb * pe) < {standard} AND div_ratio > {div_standard} AND pe < {pe} and pb < {pb}
+    ORDER BY {sort_custom}div_ratio DESC, pb ASC, pe ASC,
 """.format(
         res_table=res_table,
         cur_day = cur_day,
         standard=standard,
         pe=pe,
-        div_standard=div_standard
+        div_standard=div_standard,
+        pb=pb,
+        sort_custom=sort_str
     )
 
     data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
@@ -164,12 +170,12 @@ def daily_defensive(tmp_datetime, res_data):
     print(cur_day)
 
     logger.debug("不在下面列表里的，请考虑卖出")
-    # 由于defensive的ROE是15，高成长，所以买入放宽标准到40, 卖出标准为66, 市盈率25是极限。
-    data_def = daily_common(cur_day, "ts_res_defensive", 66, 25, 0.02)
+    # 由于defensive的ROE是15，高成长，所以买入放宽标准到40, 卖出标准为60, 市盈率25是极限。
+    data_def = daily_common(cur_day, "ts_res_defensive", 60, 22, 0.02, 3)
     logger.debug(data_def)
     res_data.defensive = data_def.to_html()
-    # 由于buffett的ROE是10年连续20，牛逼的成长，所以买入放宽标准到60, 卖出标准放宽到80。 市盈率30是极限
-    data_buf = daily_common(cur_day, "ts_res_buffett", 80, 30, 0.02)
+    # 由于buffett的ROE是10年连续20，牛逼的成长，所以买入放宽标准到60, 卖出标准放宽到90。 市盈率30是极限
+    data_buf = daily_common(cur_day, "ts_res_buffett", 90, 25, 0.02, 4.0)
     logger.debug(data_buf)
     res_data.buffett = data_buf.to_html()
 
@@ -190,7 +196,7 @@ def daily_divdend(tmp_datetime, res_data):
     # 最近3年ROE为10以上的企业，中等成长，严格执行标准22.5
     standard = 22.5
 
-    data = daily_common(cur_day, "ts_res_defensive_weak", 22.5, 12, 0.035)
+    data = daily_common(cur_day, "ts_res_defensive_weak", 22.5, 12, 0.033, 2, False)
     logger.debug(data)
     res_data.dividend = data.to_html()
 
@@ -202,7 +208,7 @@ def daily_positive(tmp_datetime, res_data):
     """
     cur_day = get_cur_day(tmp_datetime)
     # 最近3年ROE为5 以上的企业，低成长，主要寻找低市净率的企业
-    data = daily_common(cur_day, "ts_res_positive", 15, 12, 0.02)
+    data = daily_common(cur_day, "ts_res_positive", 15, 12, 0.02, 1.1, False)
     logger.debug(data)
     res_data.positive = data.to_html()
 
@@ -220,12 +226,12 @@ def save_then_mail(tmp_datetime, res_data):
 {{ buffett }}
 <p>&nbsp;</p>
 <h3>高分红 中成长建议</h3>
-<p>买入: 排名靠前且感兴趣的行业</p>
+<p>买入: 排名靠前且感兴趣的</p>
 <p>卖出: 不在下表中的</p>
 {{dividend }}
 <p>&nbsp;</p>
 <h3>破净股建议</h3>
-<p>买入: 市净率低于1.1的股票</p>
+<p>买入: 感兴趣的</p>
 <p>卖出: 不在下表中的</p>
 {{positive }}
     """)
