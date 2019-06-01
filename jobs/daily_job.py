@@ -175,12 +175,11 @@ def daily_divdend(tmp_datetime, res_data):
 
 def daily_positive(tmp_datetime, res_data):
     """
-    第8章 投资者与市场波动
-
+    破净股
     """
     cur_day = get_cur_day(tmp_datetime)
     # 最近3年ROE为5 以上的企业，低成长，主要寻找低市净率的企业
-    data = daily_common(cur_day, "ts_res_positive", 15, 12, 0.02, 1.1, False)
+    data = daily_common(cur_day, "ts_res_positive", 15, 12, 0.03, 1.1, False)
     logger.debug(data)
     res_data.positive = data.to_html()
 
