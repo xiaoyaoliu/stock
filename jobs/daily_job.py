@@ -168,7 +168,7 @@ def daily_divdend(tmp_datetime, res_data):
     # 最近3年ROE为10以上的企业，中等成长，严格执行标准22.5
     standard = 22.5
 
-    data = daily_common(cur_day, "ts_res_defensive_weak", 22.5, 12, 0.035, 2, False)
+    data = daily_common(cur_day, "ts_res_defensive_weak", 22.5, 12, 0.035, 2.5, False)
     logger.debug(data)
     res_data.dividend = data.to_html()
 
