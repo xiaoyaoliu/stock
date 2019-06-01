@@ -190,9 +190,7 @@ def daily_divdend(tmp_datetime, res_data):
     # 最近3年ROE为10以上的企业，中等成长，严格执行标准22.5
     standard = 22.5
 
-    data_def = daily_common(cur_day, "ts_res_defensive_weak", 22.5, 12, 0.035)
-    data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
-    data = data.drop_duplicates(subset="ts_code", keep="last")
+    data = daily_common(cur_day, "ts_res_defensive_weak", 22.5, 12, 0.035)
     logger.debug(data)
     res_data.dividend = data.to_html()
 
@@ -204,9 +202,7 @@ def daily_positive(tmp_datetime, res_data):
     """
     cur_day = get_cur_day(tmp_datetime)
     # 最近3年ROE为5 以上的企业，低成长，主要寻找低市净率的企业
-    data_def = daily_common(cur_day, "ts_res_positive", 15, 12, 0.02)
-    data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
-    data = data.drop_duplicates(subset="ts_code", keep="last")
+    data = daily_common(cur_day, "ts_res_positive", 15, 12, 0.02)
     logger.debug(data)
     res_data.positive = data.to_html()
 
