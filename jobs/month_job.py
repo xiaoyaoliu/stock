@@ -554,8 +554,11 @@ def positive_main(tmp_datetime, max_year=6):
     A: Lady Pepperell床单、Jantzen泳装和派克笔这样的品牌，被看做是具有巨大价值的资产。但是现在，如果市场并不青睐某家公司，那么，不仅其著名品牌，而且其土地、建筑物和机器设备等都会变得不值钱。
 
     由于A股水太深，为了避免财报造假，报表还是要满足一些基本条件
+    1. 由于6年时间较短，所以利润增长放宽到20%
+
     主要用于发现市净率比较低的企业，市净率低的公司也要满足一些基本条件
-    扣除列表
+
+    资产扣除列表
     invest_real_estate 投资性房地产
     fix_assets 固定资产
     cip 在建工程
@@ -579,7 +582,7 @@ def positive_main(tmp_datetime, max_year=6):
         INNER JOIN ( select ts_eps.ts_code, average_income, average_cash_div_tax FROM
             (select t_eps1.ts_code, (new_eps / {peer_num}) as average_income from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > {cur_year_peer}0101 and end_date like "%%1231" and end_date < {cur_year}0101 group by ts_code) t_eps1
                 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > {start_year}0101 and end_date like "%%1231" and end_date < {start_year_peer}0101 group by ts_code) t_eps2
-                ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps) > 1.3
+                ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps) > 1.2
             ) ts_eps
             INNER JOIN (
                     select ts_code, sum(cash_div_tax) / {peer_num} as average_cash_div_tax from ts_pro_dividend where end_date > {cur_year_peer}0101 and end_date < {cur_year}0101 and cash_div_tax > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= {peer_num}
