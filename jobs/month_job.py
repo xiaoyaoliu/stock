@@ -520,9 +520,9 @@ def defensive_weak_main(tmp_datetime, max_year=8):
                     select ts_code, sum(cash_div_tax) / {peer_num} as average_cash_div_tax from ts_pro_dividend where end_date > {cur_year_peer}0101 and end_date < {cur_year}0101 and cash_div_tax > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= {peer_num}
             ) ts_dividend on ts_dividend.ts_code=ts_eps.ts_code
         ) ts_income on ts_b.ts_code = ts_income.ts_code and end_date = "{last_year}1231" and total_assets > 2010001000 and
-        total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 1.5)) and
+        total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 1.5))
         and total_liab is not NULL and (total_liab <= 0 or total_liab / total_cur_assets < 1.0)
-        ts_b.ts_code in (
+        and ts_b.ts_code in (
             select ts_code from ts_pro_fina_indicator where end_date > {half_year}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and roe>10 group by ts_code having count(distinct year(end_date)) >= {half_num} and
             ts_code in (
                 select ts_code from ts_pro_income where end_date > {cur_year_peer}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and total_revenue>2010001000 group by ts_code having count(distinct year(end_date)) >= {peer_num} and
