@@ -502,7 +502,7 @@ def buffett_main(tmp_datetime, max_year=10):
 def defensive_weak_main(tmp_datetime, max_year=8):
     """
     条件: 条件放宽松的defensive版本
-    主要用于发现市净率比较低的企业，市净率低的公司也要满足一些基本条件
+    主要为了发现高分红的稳定企业
     """
 
     cur_year = int((tmp_datetime).strftime("%Y"))
@@ -545,17 +545,60 @@ def defensive_weak_main(tmp_datetime, max_year=8):
     )
     gen_res_common("ts_res_defensive_weak", sql_pro, cur_year)
 
-def defensive_research_main(tmp_datetime, max_year=6):
+def positive_main(tmp_datetime, max_year=6):
     """
-    TODO: 条件放宽松的defensive版本 + 研发投入比较高的公司
+    第15章 积极型投资者的股票选
+    如果人们能够按照低于其相应净流动资产(扣除所有优先求偿权，并且将固定资产和其他资产的价值看作零)的价格，获得一个分散化的普通股组合，就能得到相当满意的结果
+
+    Q: 为什么要将固定资产看作0？
+    A: Lady Pepperell床单、Jantzen泳装和派克笔这样的品牌，被看做是具有巨大价值的资产。但是现在，如果市场并不青睐某家公司，那么，不仅其著名品牌，而且其土地、建筑物和机器设备等都会变得不值钱。
+
+    由于A股水太深，为了避免财报造假，报表还是要满足一些基本条件
+    主要用于发现市净率比较低的企业，市净率低的公司也要满足一些基本条件
     """
-    pass
+    cur_year = int((tmp_datetime).strftime("%Y"))
+    start_year = cur_year - max_year
+    half_num = int(max_year * 0.5)
+    peer_num = 3
+
+    sql_pro = """
+    select ts_pro_basics.ts_code, symbol, name, area, industry, market, list_date, ledger_asset, average_income, average_cash_div_tax from ts_pro_basics INNER JOIN
+    (select ts_b.ts_code, (total_assets - total_liab) as ledger_asset, average_income, average_cash_div_tax from ts_pro_balancesheet ts_b
+        INNER JOIN ( select ts_eps.ts_code, average_income, average_cash_div_tax FROM
+            (select t_eps1.ts_code, (new_eps / {peer_num}) as average_income from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > {cur_year_peer}0101 and end_date like "%%1231" and end_date < {cur_year}0101 group by ts_code) t_eps1
+                INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > {start_year}0101 and end_date like "%%1231" and end_date < {start_year_peer}0101 group by ts_code) t_eps2
+                ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and old_eps > 0 and (new_eps / old_eps) > 1.3
+            ) ts_eps
+            INNER JOIN (
+                    select ts_code, sum(cash_div_tax) / {peer_num} as average_cash_div_tax from ts_pro_dividend where end_date > {cur_year_peer}0101 and end_date < {cur_year}0101 and cash_div_tax > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= {peer_num}
+            ) ts_dividend on ts_dividend.ts_code=ts_eps.ts_code
+        ) ts_income on ts_b.ts_code = ts_income.ts_code and end_date = "{last_year}1231" and total_assets > 2010001000 and
+        total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 1.3))
+        and total_liab is not NULL and (total_liab <= 0 or total_liab / total_cur_assets < 1.0)
+        and ts_b.ts_code in (
+            select ts_code from ts_pro_fina_indicator where end_date > {half_year}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and roe>5 group by ts_code having count(distinct year(end_date)) >= {half_num} and
+            ts_code in (
+                select ts_code from ts_pro_income where end_date > {cur_year_peer}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and total_revenue>2010001000 group by ts_code having count(distinct year(end_date)) >= {peer_num} and
+                ts_code in (select ts_code from ts_pro_income where end_date > {start_year}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and diluted_eps > 0 GROUP by ts_code HAVING count(distinct year(end_date)) >= {max_year}
+                )
+            )
+        )
+    ) ts_balancesheet on ts_pro_basics.ts_code = ts_balancesheet.ts_code
+""".format(
+        start_year=start_year, start_year_peer=start_year+peer_num,
+        cur_year=cur_year, last_year=cur_year-1, cur_year_peer= cur_year-peer_num,
+        peer_num=peer_num, max_year=max_year,
+        half_num=half_num, half_year=cur_year-half_num
+    )
+    gen_res_common("ts_res_positive", sql_pro, cur_year)
 
 
 # main函数入口
 if __name__ == '__main__':
     # 使用方法传递。
-    update_current_year()
-    common.run_with_args(defensive_main)
-    common.run_with_args(buffett_main)
-    common.run_with_args(defensive_weak_main)
+    # update_current_year()
+    # common.run_with_args(defensive_main)
+    # common.run_with_args(buffett_main)
+    # common.run_with_args(defensive_weak_main)
+    common.run_with_args(positive_main)
+
