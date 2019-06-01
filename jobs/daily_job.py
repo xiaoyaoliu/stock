@@ -52,34 +52,6 @@ class ResData(object):
     pass
 
 
-####### 使用 5.pdf，先做 基本面数据 的数据，然后在做交易数据。
-#
-def stat_all(tmp_datetime):
-    datetime_str = (tmp_datetime).strftime("%Y-%m-%d")
-    datetime_int = (tmp_datetime).strftime("%Y%m%d")
-
-    cache_dir = common.bash_stock_tmp % (datetime_str[0:7], datetime_str)
-    if os.path.exists(cache_dir):
-        shutil.rmtree(cache_dir)
-        print("remove cache dir force :", cache_dir)
-
-    print("datetime_str:", datetime_str)
-    print("datetime_int:", datetime_int)
-    data = ts.top_list(datetime_str)
-    # 处理重复数据，保存最新一条数据。最后一步处理，否则concat有问题。
-    #
-    if not data is None and len(data) > 0:
-        # 插入数据库。
-        # del data["reason"]
-        data["date"] = datetime_int  # 修改时间成为int类型。
-        data = data.drop_duplicates(subset="code", keep="last")
-        data.head(n=1)
-        common.insert_db(data, "ts_top_list", False, "`date`,`code`")
-    else:
-        print("no data .")
-
-    print(datetime_str)
-
 def get_cur_day(tmp_datetime):
     # 4 == Friday
     Friday = 4
@@ -129,7 +101,7 @@ def daily_common(cur_day, res_table, standard, pe, div_standard, pb, sort_by_sta
     sql_pro = """
     select *, (pb * pe) as standard from (select tb_res.ts_code, name, area, industry, market, list_date, (total_mv * 10000 / ledger_asset) as pb, (total_mv * 10000 / average_income) as pe, (average_cash_div_tax / (total_mv / total_share)) as div_ratio from {res_table} tb_res INNER JOIN
     ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code AND trade_date='{cur_day}') ts_res WHERE (pb * pe) < {standard} AND div_ratio > {div_standard} AND pe < {pe} and pb < {pb}
-    ORDER BY {sort_custom}div_ratio DESC, pb ASC, pe ASC,
+    ORDER BY {sort_custom}div_ratio DESC, pb ASC, pe ASC
 """.format(
         res_table=res_table,
         cur_day = cur_day,
