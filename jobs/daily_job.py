@@ -201,7 +201,7 @@ def save_then_mail(tmp_datetime, res_data):
 <p>卖出: 不在下表中的</p>
 {{dividend }}
 <p>&nbsp;</p>
-<h3>破净股建议</h3>
+<h3>破净股建议，适合老手</h3>
 <p>买入: 感兴趣的</p>
 <p>卖出: 不在下表中的</p>
 {{positive }}
