@@ -144,7 +144,7 @@ def daily_defensive(tmp_datetime, res_data):
 
     logger.debug("不在下面列表里的，请考虑卖出")
     # 由于defensive的ROE是15，高成长，所以买入放宽标准到40, 卖出标准为60, 市盈率25是极限。
-    data_def = daily_common(cur_day, "ts_res_defensive", 60, 22, 0.02, 3)
+    data_def = daily_common(cur_day, "ts_res_defensive", 60, 25, 0.02, 3.5)
     logger.debug(data_def)
     res_data.defensive = data_def.to_html()
     # 由于buffett的ROE是10年连续20，牛逼的成长，所以买入放宽标准到65, 卖出标准放宽到100。 市盈率30是极限
