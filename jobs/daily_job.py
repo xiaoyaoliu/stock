@@ -100,7 +100,7 @@ def daily_common(cur_day, res_table, standard, pe, div_standard, pb, sort_by_sta
     else:
         sort_str = ""
     sql_pro = """
-    select *, (pb * pe) as standard from (select tb_res.ts_code, name, area, industry, market, list_date, max(ts_pro_daily.pb, total_mv * 10000 / div_ledger_asset) as pb, (total_mv * 10000 / average_income) as pe, (average_cash_div_tax / (total_mv / total_share)) as div_ratio from {res_table} tb_res INNER JOIN
+    select *, (pb * pe) as standard from (select tb_res.ts_code, name, area, industry, market, list_date, GREATEST(ts_pro_daily.pb, total_mv * 10000 / div_ledger_asset) as pb, (total_mv * 10000 / average_income) as pe, (average_cash_div_tax / (total_mv / total_share)) as div_ratio from {res_table} tb_res INNER JOIN
     ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code AND trade_date='{cur_day}') ts_res WHERE (pb * pe) < {standard} AND div_ratio > {div_standard} AND pe < {pe} and pb < {pb}
     ORDER BY {sort_custom}div_ratio DESC, pb ASC, pe ASC
 """.format(
