@@ -515,7 +515,7 @@ def defensive_weak_main(tmp_datetime, max_year=8):
 
     sql_pro = """
     select ts_pro_basics.ts_code, symbol, name, area, industry, market, list_date, ledger_asset, div_ledger_asset, average_income, average_cash_div_tax from ts_pro_basics INNER JOIN
-    (select ts_b.ts_code, (total_assets - total_liab - IFNULL(`lt_eqt_invest`, 0) * 0.6 - IFNULL(`invest_real_estate`, 0) * 0.6 - IFNULL(`fix_assets`, 0) * 0.6 - IFNULL(`cip`, 0) * 0.6 - IFNULL(`const_materials`, 0) * 0.6 - IFNULL(`fixed_assets_disp`, 0) - IFNULL(`intan_assets`, 0) * 0.8 - IFNULL(`r_and_d`, 0) * 0.4 - IFNULL(`goodwill`, 0) - IFNULL(`lt_amor_exp`, 0) - IFNULL(`oth_nca`, 0) * 0.8 - IFNULL(`defer_tax_assets`, 0)) as div_ledger_asset, (total_assets - total_liab) as
+    (select ts_b.ts_code, (total_assets - total_liab - IFNULL(`lt_eqt_invest`, 0) * 0.4 - IFNULL(`invest_real_estate`, 0) * 0.4 - IFNULL(`fix_assets`, 0) * 0.4 - IFNULL(`cip`, 0) * 0.4 - IFNULL(`const_materials`, 0) * 0.4 - IFNULL(`fixed_assets_disp`, 0) * 0.8 - IFNULL(`intan_assets`, 0) * 0.8 - IFNULL(`r_and_d`, 0) * 0.3 - IFNULL(`goodwill`, 0) * 0.8 - IFNULL(`lt_amor_exp`, 0) * 0.8 - IFNULL(`oth_nca`, 0) * 0.8 - IFNULL(`defer_tax_assets`, 0) * 0.8) as div_ledger_asset, (total_assets - total_liab) as
     ledger_asset, average_income, average_cash_div_tax from ts_pro_balancesheet ts_b
         INNER JOIN ( select ts_eps.ts_code, average_income, average_cash_div_tax FROM
             (select t_eps1.ts_code, (new_eps / {peer_num}) as average_income from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > {cur_year_peer}0101 and end_date like "%%1231" and end_date < {cur_year}0101 group by ts_code) t_eps1
@@ -583,7 +583,7 @@ def positive_main(tmp_datetime, max_year=6):
 
     sql_pro = """
     select ts_pro_basics.ts_code, symbol, name, area, industry, market, list_date, ledger_asset, div_ledger_asset, average_income, average_cash_div_tax from ts_pro_basics INNER JOIN
-    (select ts_b.ts_code, (total_assets - total_liab - IFNULL(`lt_eqt_invest`, 0) * 0.6 - IFNULL(`invest_real_estate`, 0) * 0.6 - IFNULL(`fix_assets`, 0) * 0.6 - IFNULL(`cip`, 0) * 0.6 - IFNULL(`const_materials`, 0) * 0.6 - IFNULL(`fixed_assets_disp`, 0) - IFNULL(`intan_assets`, 0) * 0.8 - IFNULL(`r_and_d`, 0) * 0.4 - IFNULL(`goodwill`, 0) - IFNULL(`lt_amor_exp`, 0) - IFNULL(`oth_nca`, 0) * 0.8 - IFNULL(`defer_tax_assets`, 0))
+    (select ts_b.ts_code, (total_assets - total_liab - IFNULL(`lt_eqt_invest`, 0) * 0.4 - IFNULL(`invest_real_estate`, 0) * 0.4 - IFNULL(`fix_assets`, 0) * 0.4 - IFNULL(`cip`, 0) * 0.4 - IFNULL(`const_materials`, 0) * 0.4 - IFNULL(`fixed_assets_disp`, 0) * 0.8 - IFNULL(`intan_assets`, 0) * 0.8 - IFNULL(`r_and_d`, 0) * 0.3 - IFNULL(`goodwill`, 0) * 0.8 - IFNULL(`lt_amor_exp`, 0) * 0.8 - IFNULL(`oth_nca`, 0) * 0.8 - IFNULL(`defer_tax_assets`, 0) * 0.8)
         as div_ledger_asset, (total_assets - total_liab) as ledger_asset, average_income, average_cash_div_tax from ts_pro_balancesheet ts_b
         INNER JOIN ( select ts_eps.ts_code, average_income, average_cash_div_tax FROM
             (select t_eps1.ts_code, (new_eps / {peer_num}) as average_income from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > {cur_year_peer}0101 and end_date like "%%1231" and end_date < {cur_year}0101 group by ts_code) t_eps1
