@@ -54,8 +54,7 @@ class ResData(object):
 
 def get_cur_day(tmp_datetime):
     # 4 == Friday
-    # Friday = 4
-    Friday = 3
+    Friday = 4
     if tmp_datetime.weekday() > Friday:
         # Saturday And Sunday
         days = tmp_datetime.weekday() - Friday
@@ -65,7 +64,8 @@ def get_cur_day(tmp_datetime):
         cur_hour = int(tmp_datetime.strftime("%H"))
         if cur_hour < 17:
             cur_day = int((tmp_datetime - datetime.timedelta(days=1)).strftime("%Y%m%d"))
-    return cur_day
+    # return cur_day
+    return 20190606
 
 
 def stat_pro_basics(tmp_datetime):
