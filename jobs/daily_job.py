@@ -148,7 +148,7 @@ def daily_defensive(tmp_datetime, res_data):
     logger.debug(data_def)
     res_data.defensive = data_def.to_html()
     # 由于buffett的ROE是10年连续20，牛逼的成长，所以买入放宽标准到60, 卖出标准放宽到90。 市盈率30是极限
-    data_buf = daily_common(cur_day, "ts_res_buffett", 90, 25, 0.02, 4.0)
+    data_buf = daily_common(cur_day, "ts_res_buffett", 100, 25, 0.02, 5.0)
     logger.debug(data_buf)
     res_data.buffett = data_buf.to_html()
 
