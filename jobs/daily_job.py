@@ -100,7 +100,7 @@ def daily_common(cur_day, res_table, standard, pe, div_standard, pb, sort_by_sta
     else:
         sort_str = ""
     sql_pro = """
-    select *, (pb * pe) as standard from (select tb_res.ts_code, name, area, industry, market, list_date, (ts_pro_daily.pb * ledger_asset / div_ledger_asset) as pb, (total_mv * 10000 / average_income) as pe, (average_cash_div_tax / (total_mv / total_share)) as div_ratio from {res_table} tb_res INNER JOIN
+    select *, (pb * pe) as standard from (select tb_res.ts_code, name, area, industry, market, list_date, max(ts_pro_daily.pb, total_mv * 10000 / div_ledger_asset) as pb, (total_mv * 10000 / average_income) as pe, (average_cash_div_tax / (total_mv / total_share)) as div_ratio from {res_table} tb_res INNER JOIN
     ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code AND trade_date='{cur_day}') ts_res WHERE (pb * pe) < {standard} AND div_ratio > {div_standard} AND pe < {pe} and pb < {pb}
     ORDER BY {sort_custom}div_ratio DESC, pb ASC, pe ASC
 """.format(
@@ -147,8 +147,8 @@ def daily_defensive(tmp_datetime, res_data):
     data_def = daily_common(cur_day, "ts_res_defensive", 60, 22, 0.02, 3)
     logger.debug(data_def)
     res_data.defensive = data_def.to_html()
-    # 由于buffett的ROE是10年连续20，牛逼的成长，所以买入放宽标准到60, 卖出标准放宽到90。 市盈率30是极限
-    data_buf = daily_common(cur_day, "ts_res_buffett", 100, 25, 0.02, 5.0)
+    # 由于buffett的ROE是10年连续20，牛逼的成长，所以买入放宽标准到65, 卖出标准放宽到100。 市盈率30是极限
+    data_buf = daily_common(cur_day, "ts_res_buffett", 100, 30, 0.02, 5.0)
     logger.debug(data_buf)
     res_data.buffett = data_buf.to_html()
 
@@ -193,7 +193,7 @@ def save_then_mail(tmp_datetime, res_data):
 {{ defensive }}
 <p>&nbsp;</p>
 <h3>ROE20建议</h3>
-<p>买入: standard &lt;&nbsp; <strong>60</strong></p>
+<p>买入: standard &lt;&nbsp; <strong>65</strong></p>
 <p>卖出: 不在下表中的</p>
 {{ buffett }}
 <p>&nbsp;</p>
