@@ -142,12 +142,12 @@ def daily_defensive(tmp_datetime, res_data):
     print(cur_day)
 
     logger.debug("不在下面列表里的，请考虑卖出")
-    # 由于defensive的ROE是15，高成长，所以买入放宽标准到45, 卖出标准为80, 市盈率25是极限。
-    data_def = daily_common(cur_day, "ts_res_defensive", 80, 25, 0.02, 4.0)
+    # 由于defensive的ROE是15，高成长，所以买入放宽标准到45, 卖出标准为70, 市盈率25是极限。
+    data_def = daily_common(cur_day, "ts_res_defensive", 70, 25, 0.02, 4.0)
     logger.debug(data_def)
     res_data.defensive = data_def.to_html()
-    # 由于buffett的ROE是10年连续20，牛逼的成长，所以买入放宽标准到65, 卖出标准放宽到120。 市盈率30是极限
-    data_buf = daily_common(cur_day, "ts_res_buffett", 120, 30, 0.015, 6.0)
+    # 由于buffett的ROE是10年连续20，牛逼的成长，所以买入放宽标准到65, 卖出标准放宽到110。 市盈率30是极限
+    data_buf = daily_common(cur_day, "ts_res_buffett", 110, 30, 0.015, 6.0)
     logger.debug(data_buf)
     res_data.buffett = data_buf.to_html()
 
