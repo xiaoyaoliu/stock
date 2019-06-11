@@ -27,7 +27,7 @@ MAILS = [
 ]
 
 WEEK_MAILS = [
-    # "707136301@qq.com",  # 曹晓龙
+    "707136301@qq.com",  # 曹晓龙
 ]
 
 # create formatter
