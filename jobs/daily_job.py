@@ -27,7 +27,7 @@ MAILS = [
 ]
 
 WEEK_MAILS = [
-    "707136301@qq.com",  # 曹晓龙
+    # "707136301@qq.com",  # 曹晓龙
 ]
 
 # create formatter
@@ -115,7 +115,6 @@ def daily_common(cur_day, res_table, standard, pe, div_standard, pb, sort_by_sta
 
     data = pd.read_sql(sql=sql_pro, con=common.engine(), params=[])
     data = data.drop_duplicates(subset="ts_code", keep="last")
-    logger.debug(res_table)
     return data
 
 
@@ -143,12 +142,12 @@ def daily_defensive(tmp_datetime, res_data):
     print(cur_day)
 
     logger.debug("不在下面列表里的，请考虑卖出")
-    # 由于defensive的ROE是15，高成长，所以买入放宽标准到40, 卖出标准为60, 市盈率25是极限。
-    data_def = daily_common(cur_day, "ts_res_defensive", 60, 25, 0.025, 3.5)
+    # 由于defensive的ROE是15，高成长，所以买入放宽标准到45, 卖出标准为80, 市盈率25是极限。
+    data_def = daily_common(cur_day, "ts_res_defensive", 80, 25, 0.02, 4.0)
     logger.debug(data_def)
     res_data.defensive = data_def.to_html()
-    # 由于buffett的ROE是10年连续20，牛逼的成长，所以买入放宽标准到65, 卖出标准放宽到100。 市盈率30是极限
-    data_buf = daily_common(cur_day, "ts_res_buffett", 100, 30, 0.02, 6.0)
+    # 由于buffett的ROE是10年连续20，牛逼的成长，所以买入放宽标准到65, 卖出标准放宽到120。 市盈率30是极限
+    data_buf = daily_common(cur_day, "ts_res_buffett", 120, 30, 0.015, 6.0)
     logger.debug(data_buf)
     res_data.buffett = data_buf.to_html()
 
@@ -169,7 +168,7 @@ def daily_divdend(tmp_datetime, res_data):
     # 最近3年ROE为10以上的企业，中等成长，严格执行标准22.5。
     # ts_res_defensive_weak中的企业净资产排除了部分非流动资产，市净率偏高
 
-    data = daily_common(cur_day, "ts_res_defensive_weak", 22.5, 12, 0.038, 2.5, False)
+    data = daily_common(cur_day, "ts_res_defensive_weak", 22.5, 12, 0.033, 2.5, False)
     logger.debug(data)
     res_data.dividend = data.to_html()
 
@@ -188,19 +187,21 @@ def daily_positive(tmp_datetime, res_data):
 def save_then_mail(tmp_datetime, res_data):
     html_template = Template("""
 <h3>防御型建议</h3>
-<p>买入: standard &lt;&nbsp; <strong>40</strong></p>
+<p>可以买入: standard &lt;&nbsp; <strong>45</strong></p>
+<p>推荐买入: standard &lt;&nbsp; <strong>35</strong></p>
 <p>卖出: 不在下表中的股票</p>
-{{ defensive }}
+<p>{{ defensive }}</p>
 <p>&nbsp;</p>
 <h3>ROE20建议</h3>
-<p>买入: standard &lt;&nbsp; <strong>65</strong></p>
+<p>可以买入: standard &lt;&nbsp; <strong>65</strong></p>
+<p>推荐买入: standard &lt;&nbsp; <strong>55</strong></p>
 <p>卖出: 不在下表中的</p>
-{{ buffett }}
+<p>{{ buffett }}</p>
 <p>&nbsp;</p>
 <h3>高分红 中成长建议</h3>
-<p>买入: 感兴趣的</p>
+<p>买入: 排名靠前且感兴趣的</p>
 <p>卖出: 不在下表中的</p>
-{{dividend }}
+<p>{{dividend }}</p>
 <p>&nbsp;</p>
 <h3>破净股建议，适合老手</h3>
 <p>买入: 感兴趣的</p>
