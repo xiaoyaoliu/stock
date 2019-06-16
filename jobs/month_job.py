@@ -361,6 +361,7 @@ def defensive_main(tmp_datetime, max_year=10):
         balancesheet
         截至2019年4月24日, 负债率符合要求的公司有764家
         select ts_code from ts_pro_balancesheet where end_date = "20181231" and total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0)) ;
+        <上市公司财务报表解读> 扣除存货的流动资产应该大于流动负债
 
     3. 利润的稳定性，过去10年中，普通股每年都有一定的利润。
         每股收益 esp
@@ -434,7 +435,8 @@ def defensive_main(tmp_datetime, max_year=10):
             ) ts_dividend on ts_dividend.ts_code=ts_eps.ts_code
         ) ts_income on ts_b.ts_code = ts_income.ts_code and end_date = "{last_year}1231" and total_assets > 4010001000 and
         total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 2.0))
-        and total_liab is not NULL and (total_liab <= 0 or total_liab / total_cur_assets < 1.0)
+        and (total_liab is NULL or (total_liab <= 0 or total_liab / total_cur_assets < 1.0))
+        and (inventories is NULL or (total_cur_assets - inventories) / total_cur_liab > 1.0)
         and ts_b.ts_code in (
             select ts_code from ts_pro_fina_indicator where end_date > {half_year}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and roe>15 group by ts_code having count(distinct year(end_date)) >= {half_num} and
             ts_code in (
@@ -484,7 +486,8 @@ def buffett_main(tmp_datetime, max_year=10):
             ) ts_dividend on ts_dividend.ts_code=ts_eps.ts_code
         ) ts_income on ts_b.ts_code = ts_income.ts_code and end_date = "{last_year}1231" and total_assets > 2010001000 and
         total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or (total_cur_assets / total_cur_liab) > 1.3)
-        and total_liab is not NULL and (total_liab <= 0 or total_liab / total_cur_assets < 1.0)
+        and (total_liab is NULL or (total_liab <= 0 or total_liab / total_cur_assets < 1.0))
+        and (inventories is NULL or (total_cur_assets - inventories) / total_cur_liab > 1.0)
         and ts_b.ts_code in (
             select ts_code from ts_pro_fina_indicator where end_date > {start_year}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and roe>20 group by ts_code having count(distinct year(end_date)) >= {max_year} and
             ts_code in (
@@ -527,7 +530,8 @@ def defensive_weak_main(tmp_datetime, max_year=8):
             ) ts_dividend on ts_dividend.ts_code=ts_eps.ts_code
         ) ts_income on ts_b.ts_code = ts_income.ts_code and end_date = "{last_year}1231" and total_assets > 2010001000 and
         total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 1.5))
-        and total_liab is not NULL and (total_liab <= 0 or total_liab / total_cur_assets < 1.0)
+        and (total_liab is NULL or (total_liab <= 0 or total_liab / total_cur_assets < 1.0))
+        and (inventories is NULL or (total_cur_assets - inventories) / total_cur_liab > 1.0)
         and ts_b.ts_code in (
             select ts_code from ts_pro_fina_indicator where end_date > {half_year}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and roe>10 group by ts_code having count(distinct year(end_date)) >= {half_num} and
             ts_code in (
@@ -595,7 +599,8 @@ def positive_main(tmp_datetime, max_year=6):
             ) ts_dividend on ts_dividend.ts_code=ts_eps.ts_code
         ) ts_income on ts_b.ts_code = ts_income.ts_code and end_date = "{last_year}1231" and total_assets > 2010001000 and
         total_cur_liab is not NULL and total_cur_assets is not NULL and (total_cur_liab <= 0 or ((total_cur_assets / total_cur_liab) > 1.3))
-        and total_liab is not NULL and (total_liab <= 0 or total_liab / total_cur_assets < 1.0)
+        and (total_liab is NULL or (total_liab <= 0 or total_liab / total_cur_assets < 1.0))
+        and (inventories is NULL or (total_cur_assets - inventories) / total_cur_liab > 1.0)
         and ts_b.ts_code in (
             select ts_code from ts_pro_fina_indicator where end_date > {half_year}0101 and end_date < {cur_year}0101 and end_date like "%%1231" and roe>5 group by ts_code having count(distinct year(end_date)) >= {half_num} and
             ts_code in (
