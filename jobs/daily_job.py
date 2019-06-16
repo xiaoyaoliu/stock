@@ -65,7 +65,7 @@ def get_cur_day(tmp_datetime):
         if cur_hour < 17:
             cur_day = int((tmp_datetime - datetime.timedelta(days=1)).strftime("%Y%m%d"))
     return cur_day
-    # return 20190606
+    # return 20190614
 
 
 def stat_pro_basics(tmp_datetime):
@@ -101,7 +101,8 @@ def daily_common(cur_day, res_table, standard, pe, div_standard, pb, sort_by_sta
         sort_str = ""
     sql_pro = """
     select *, (pb * pe) as standard from (select tb_res.ts_code, name, area, industry, market, list_date, GREATEST(ts_pro_daily.pb, total_mv * 10000 / div_ledger_asset) as pb, (total_mv * 10000 / average_income) as pe, (average_cash_div_tax / (total_mv / total_share)) as div_ratio from {res_table} tb_res INNER JOIN
-    ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code AND trade_date='{cur_day}') ts_res WHERE (pb * pe) < {standard} AND div_ratio > {div_standard} AND pe < {pe} and pb < {pb}
+    ts_pro_daily on tb_res.ts_code = ts_pro_daily.ts_code AND trade_date='{cur_day}') ts_res WHERE (((pb * pe) < {standard} AND div_ratio > {div_standard}) OR div_ratio > 0.05) AND pe < {pe} and pb < {pb}
+
     ORDER BY {sort_custom}div_ratio DESC, pb ASC, pe ASC
 """.format(
         res_table=res_table,
@@ -179,7 +180,7 @@ def daily_positive(tmp_datetime, res_data):
     """
     cur_day = get_cur_day(tmp_datetime)
     # 最近3年ROE为5 以上的企业，低成长，主要寻找低市净率的企业
-    data = daily_common(cur_day, "ts_res_positive", 15, 12, 0.03, 1.1, False)
+    data = daily_common(cur_day, "ts_res_positive", 15, 12, 0.03, 1.2, False)
     logger.debug(data)
     res_data.positive = data.to_html()
 
@@ -199,12 +200,12 @@ def save_then_mail(tmp_datetime, res_data):
 <p>{{ buffett }}</p>
 <p>&nbsp;</p>
 <h3>高分红 中成长建议</h3>
-<p>买入: div_ratio &gt;&nbsp; <strong>0.05</strong> 且感兴趣的</p>
+<p>买入: standard &lt;&nbsp; <strong>22.5</strong> 且 div_ratio &gt;&nbsp; <strong>0.05</strong> 且感兴趣的</p>
 <p>卖出: 不在下表中的</p>
 <p>{{dividend }}</p>
 <p>&nbsp;</p>
 <h3>破净股建议，适合老手</h3>
-<p>买入: div_ratio &gt;&nbsp; <strong>0.04</strong> 且感兴趣的</p>
+<p>买入: pb &lt;&nbsp; <strong>1.0</strong> 且div_ratio &gt;&nbsp; <strong>0.04</strong> 且感兴趣的</p>
 <p>卖出: 不在下表中的</p>
 {{positive }}
     """)
