@@ -143,11 +143,11 @@ def daily_defensive(tmp_datetime, res_data):
 
     logger.debug("不在下面列表里的，请考虑卖出")
     # 由于defensive的ROE是15，高成长，所以买入放宽标准到45, 卖出标准为70, 市盈率25是极限。
-    data_def = daily_common(cur_day, "ts_res_defensive", 70, 25, 0.02, 4.0)
+    data_def = daily_common(cur_day, "ts_res_defensive", 70, 25, 0.025, 4.0)
     logger.debug(data_def)
     res_data.defensive = data_def.to_html()
     # 由于buffett的ROE是10年连续20，牛逼的成长，所以买入放宽标准到65, 卖出标准放宽到110。 市盈率30是极限
-    data_buf = daily_common(cur_day, "ts_res_buffett", 110, 30, 0.015, 6.0)
+    data_buf = daily_common(cur_day, "ts_res_buffett", 110, 30, 0.02, 6.0)
     logger.debug(data_buf)
     res_data.buffett = data_buf.to_html()
 
@@ -187,24 +187,24 @@ def daily_positive(tmp_datetime, res_data):
 def save_then_mail(tmp_datetime, res_data):
     html_template = Template("""
 <h3>防御型建议</h3>
-<p>可以买入: standard &lt;&nbsp; <strong>45</strong></p>
+<p>可以买入: standard &lt;&nbsp; <strong>45</strong> 且 div_ratio &gt;&nbsp; <strong>0.04</strong> </p>
 <p>推荐买入: standard &lt;&nbsp; <strong>35</strong></p>
 <p>卖出: 不在下表中的股票</p>
 <p>{{ defensive }}</p>
 <p>&nbsp;</p>
 <h3>ROE20建议</h3>
-<p>可以买入: standard &lt;&nbsp; <strong>65</strong></p>
+<p>可以买入: standard &lt;&nbsp; <strong>65</strong> 且 div_ratio &gt;&nbsp; <strong>0.03</strong> </p>
 <p>推荐买入: standard &lt;&nbsp; <strong>55</strong></p>
 <p>卖出: 不在下表中的</p>
 <p>{{ buffett }}</p>
 <p>&nbsp;</p>
 <h3>高分红 中成长建议</h3>
-<p>买入: 排名靠前且感兴趣的</p>
+<p>买入: div_ratio &gt;&nbsp; <strong>0.05</strong> 且感兴趣的</p>
 <p>卖出: 不在下表中的</p>
 <p>{{dividend }}</p>
 <p>&nbsp;</p>
 <h3>破净股建议，适合老手</h3>
-<p>买入: 感兴趣的</p>
+<p>买入: div_ratio &gt;&nbsp; <strong>0.04</strong> 且感兴趣的</p>
 <p>卖出: 不在下表中的</p>
 {{positive }}
     """)
