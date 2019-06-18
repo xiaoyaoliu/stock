@@ -425,8 +425,8 @@ def defensive_main(tmp_datetime, max_year=10):
 
     sql_pro = """
     select ts_pro_basics.ts_code, symbol, name, area, industry, market, list_date, div_ledger_asset, ledger_asset, average_income, average_cash_div_tax from ts_pro_basics INNER JOIN
-    (select ts_b.ts_code, (total_assets - total_liab - IFNULL(`lt_eqt_invest`, 0) * 0.3 - IFNULL(`invest_real_estate`, 0) * 0.3 - IFNULL(`fix_assets`, 0) * 0.3 - IFNULL(`cip`, 0) * 0.3 - IFNULL(`const_materials`, 0) * 0.3 - IFNULL(`fixed_assets_disp`, 0) * 0.6 - IFNULL(`intan_assets`, 0) * 0.6 - IFNULL(`r_and_d`, 0) * 0.2 - IFNULL(`goodwill`, 0) * 0.6 - IFNULL(`lt_amor_exp`, 0) * 0.6 - IFNULL(`oth_nca`, 0) * 0.6 - IFNULL(`defer_tax_assets`, 0) *
-    0.6) as div_ledger_asset, (total_assets - total_liab) as ledger_asset, average_income, average_cash_div_tax from ts_pro_balancesheet ts_b
+    (select ts_b.ts_code, (total_assets - total_liab - IFNULL(`lt_eqt_invest`, 0) * 0.3 - IFNULL(`invest_real_estate`, 0) * 0.3 - IFNULL(`fix_assets`, 0) * 0.3 - IFNULL(`cip`, 0) * 0.3 - IFNULL(`const_materials`, 0) * 0.3 - IFNULL(`fixed_assets_disp`, 0) * 0.8 - IFNULL(`intan_assets`, 0) * 0.8 - IFNULL(`r_and_d`, 0) * 0.2 - IFNULL(`goodwill`, 0) * 0.8 - IFNULL(`lt_amor_exp`, 0) * 0.8 - IFNULL(`oth_nca`, 0) * 0.8 - IFNULL(`defer_tax_assets`, 0) *
+    0.8) as div_ledger_asset, (total_assets - total_liab) as ledger_asset, average_income, average_cash_div_tax from ts_pro_balancesheet ts_b
         INNER JOIN (select ts_eps.ts_code, average_income, average_cash_div_tax FROM
             (select t_eps1.ts_code, (new_eps / {peer_num}) as average_income from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > {cur_year_peer}0101 and end_date like "%%1231" and end_date < {cur_year}0101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > {start_year}0101 and end_date like "%%1231" and end_date < {start_year_peer}0101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and
                         old_eps > 0 and (new_eps / old_eps) > 2) ts_eps
@@ -475,8 +475,8 @@ def buffett_main(tmp_datetime, max_year=10):
 
     sql_pro = """
     select ts_pro_basics.ts_code, symbol, name, area, industry, market, list_date, div_ledger_asset, ledger_asset, average_income, average_cash_div_tax from ts_pro_basics INNER JOIN
-    (select ts_b.ts_code, (total_assets - total_liab - IFNULL(`lt_eqt_invest`, 0) * 0.3 - IFNULL(`invest_real_estate`, 0) * 0.3 - IFNULL(`fix_assets`, 0) * 0.3 - IFNULL(`cip`, 0) * 0.3 - IFNULL(`const_materials`, 0) * 0.3 - IFNULL(`fixed_assets_disp`, 0) * 0.6 - IFNULL(`intan_assets`, 0) * 0.6 - IFNULL(`r_and_d`, 0) * 0.2 - IFNULL(`goodwill`, 0) * 0.6 - IFNULL(`lt_amor_exp`, 0) * 0.6 - IFNULL(`oth_nca`, 0) * 0.6 - IFNULL(`defer_tax_assets`, 0) *
-    0.6) as div_ledger_asset,
+    (select ts_b.ts_code, (total_assets - total_liab - IFNULL(`lt_eqt_invest`, 0) * 0.3 - IFNULL(`invest_real_estate`, 0) * 0.3 - IFNULL(`fix_assets`, 0) * 0.3 - IFNULL(`cip`, 0) * 0.3 - IFNULL(`const_materials`, 0) * 0.3 - IFNULL(`fixed_assets_disp`, 0) * 0.8 - IFNULL(`intan_assets`, 0) * 0.8 - IFNULL(`r_and_d`, 0) * 0.2 - IFNULL(`goodwill`, 0) * 0.8 - IFNULL(`lt_amor_exp`, 0) * 0.8 - IFNULL(`oth_nca`, 0) * 0.8 - IFNULL(`defer_tax_assets`, 0) *
+    0.8) as div_ledger_asset,
     (total_assets - total_liab) as ledger_asset, average_income, average_cash_div_tax from ts_pro_balancesheet ts_b
         INNER JOIN (select ts_eps.ts_code, average_income, average_cash_div_tax FROM
             (select t_eps1.ts_code, (new_eps / {peer_num}) as average_income from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > {cur_year_peer}0101 and end_date like "%%1231" and end_date < {cur_year}0101 group by ts_code) t_eps1 INNER JOIN (select ts_code, sum(n_income_attr_p) as old_eps from ts_pro_income where end_date > {start_year}0101 and end_date like "%%1231" and end_date < {start_year_peer}0101 group by ts_code) t_eps2 ON t_eps1.ts_code = t_eps2.ts_code and old_eps is not NULL and new_eps is not NULL and
@@ -518,7 +518,7 @@ def defensive_weak_main(tmp_datetime, max_year=8):
 
     sql_pro = """
     select ts_pro_basics.ts_code, symbol, name, area, industry, market, list_date, ledger_asset, div_ledger_asset, average_income, average_cash_div_tax from ts_pro_basics INNER JOIN
-    (select ts_b.ts_code, (total_assets - total_liab - IFNULL(`lt_eqt_invest`, 0) * 0.4 - IFNULL(`invest_real_estate`, 0) * 0.4 - IFNULL(`fix_assets`, 0) * 0.4 - IFNULL(`cip`, 0) * 0.4 - IFNULL(`const_materials`, 0) * 0.4 - IFNULL(`fixed_assets_disp`, 0) * 0.8 - IFNULL(`intan_assets`, 0) * 0.8 - IFNULL(`r_and_d`, 0) * 0.3 - IFNULL(`goodwill`, 0) * 0.8 - IFNULL(`lt_amor_exp`, 0) * 0.8 - IFNULL(`oth_nca`, 0) * 0.8 - IFNULL(`defer_tax_assets`, 0) * 0.8) as div_ledger_asset, (total_assets - total_liab) as
+    (select ts_b.ts_code, (total_assets - total_liab - IFNULL(`lt_eqt_invest`, 0) * 0.4 - IFNULL(`invest_real_estate`, 0) * 0.4 - IFNULL(`fix_assets`, 0) * 0.4 - IFNULL(`cip`, 0) * 0.4 - IFNULL(`const_materials`, 0) * 0.4 - IFNULL(`fixed_assets_disp`, 0) * 0.8 - IFNULL(`intan_assets`, 0) * 1.0 - IFNULL(`r_and_d`, 0) * 0.3 - IFNULL(`goodwill`, 0) * 1.0 - IFNULL(`lt_amor_exp`, 0) * 1.0 - IFNULL(`oth_nca`, 0) * 0.8 - IFNULL(`defer_tax_assets`, 0) * 1.0) as div_ledger_asset, (total_assets - total_liab) as
     ledger_asset, average_income, average_cash_div_tax from ts_pro_balancesheet ts_b
         INNER JOIN ( select ts_eps.ts_code, average_income, average_cash_div_tax FROM
             (select t_eps1.ts_code, (new_eps / {peer_num}) as average_income from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > {cur_year_peer}0101 and end_date like "%%1231" and end_date < {cur_year}0101 group by ts_code) t_eps1
@@ -579,6 +579,16 @@ def positive_main(tmp_datetime, max_year=6):
     lt_amor_exp 长期待摊费用。
     defer_tax_assets 递延所得税资产
     oth_nca 其他非流动资产
+
+    <上市公司财务报表解读>
+    # 无形资产
+    是指不具有物质形态，也无法具体测算其数值的资本(固定)资产.
+    包括专利权、商标、著作权、商誉、租赁权以及类似未摊销债券折扣那样的递延资产。
+    如果要想对他们进行计量的话，这些资产都应该以成本价反映在资产负债表上，但是通常披露的价值纯粹就是一种人为随意确定的价值
+
+    # 账面价值:
+    在计算账面价值的一般操作实务中，是把无形资产排除在外，因而它实际上相当于"有形资产的账面价值"
+
     """
     cur_year = int((tmp_datetime).strftime("%Y"))
     start_year = cur_year - max_year
@@ -587,7 +597,7 @@ def positive_main(tmp_datetime, max_year=6):
 
     sql_pro = """
     select ts_pro_basics.ts_code, symbol, name, area, industry, market, list_date, ledger_asset, div_ledger_asset, average_income, average_cash_div_tax from ts_pro_basics INNER JOIN
-    (select ts_b.ts_code, (total_assets - total_liab - IFNULL(`lt_eqt_invest`, 0) * 0.4 - IFNULL(`invest_real_estate`, 0) * 0.4 - IFNULL(`fix_assets`, 0) * 0.4 - IFNULL(`cip`, 0) * 0.4 - IFNULL(`const_materials`, 0) * 0.4 - IFNULL(`fixed_assets_disp`, 0) * 0.8 - IFNULL(`intan_assets`, 0) * 0.8 - IFNULL(`r_and_d`, 0) * 0.3 - IFNULL(`goodwill`, 0) * 0.8 - IFNULL(`lt_amor_exp`, 0) * 0.8 - IFNULL(`oth_nca`, 0) * 0.8 - IFNULL(`defer_tax_assets`, 0) * 0.8)
+    (select ts_b.ts_code, (total_assets - total_liab - IFNULL(`lt_eqt_invest`, 0) * 0.4 - IFNULL(`invest_real_estate`, 0) * 0.4 - IFNULL(`fix_assets`, 0) * 0.4 - IFNULL(`cip`, 0) * 0.4 - IFNULL(`const_materials`, 0) * 0.4 - IFNULL(`fixed_assets_disp`, 0) * 0.8 - IFNULL(`intan_assets`, 0) * 1.0 - IFNULL(`r_and_d`, 0) * 0.3 - IFNULL(`goodwill`, 0) * 1.0 - IFNULL(`lt_amor_exp`, 0) * 1.0 - IFNULL(`oth_nca`, 0) * 0.8 - IFNULL(`defer_tax_assets`, 0) * 1.0)
         as div_ledger_asset, (total_assets - total_liab) as ledger_asset, average_income, average_cash_div_tax from ts_pro_balancesheet ts_b
         INNER JOIN ( select ts_eps.ts_code, average_income, average_cash_div_tax FROM
             (select t_eps1.ts_code, (new_eps / {peer_num}) as average_income from (select ts_code, sum(n_income_attr_p) as new_eps from ts_pro_income where end_date > {cur_year_peer}0101 and end_date like "%%1231" and end_date < {cur_year}0101 group by ts_code) t_eps1
