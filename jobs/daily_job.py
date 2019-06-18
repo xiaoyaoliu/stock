@@ -144,7 +144,7 @@ def daily_defensive(tmp_datetime, res_data):
 
     logger.debug("不在下面列表里的，请考虑卖出")
     # 由于defensive的ROE是15，高成长，所以买入放宽标准到45, 卖出标准为70, 市盈率25是极限。
-    data_def = daily_common(cur_day, "ts_res_defensive", 70, 25, 0.025, 4.0)
+    data_def = daily_common(cur_day, "ts_res_defensive", 70, 25, 0.025, 5.0)
     logger.debug(data_def)
     res_data.defensive = data_def.to_html()
     # 由于buffett的ROE是10年连续20，牛逼的成长，所以买入放宽标准到65, 卖出标准放宽到110。 市盈率30是极限
@@ -169,7 +169,7 @@ def daily_divdend(tmp_datetime, res_data):
     # 最近3年ROE为10以上的企业，中等成长，严格执行标准22.5。
     # ts_res_defensive_weak中的企业净资产排除了部分非流动资产，市净率偏高, 所以提升至30
 
-    data = daily_common(cur_day, "ts_res_defensive_weak", 30, 15, 0.033, 3.0, False)
+    data = daily_common(cur_day, "ts_res_defensive_weak", 30, 20, 0.033, 3.0, False)
     logger.debug(data)
     res_data.dividend = data.to_html()
 
@@ -180,7 +180,7 @@ def daily_positive(tmp_datetime, res_data):
     """
     cur_day = get_cur_day(tmp_datetime)
     # 最近3年ROE为5 以上的企业，低成长，主要寻找低市净率的企业
-    data = daily_common(cur_day, "ts_res_positive", 15, 12, 0.03, 1.2, False)
+    data = daily_common(cur_day, "ts_res_positive", 15, 15, 0.03, 1.2, False)
     logger.debug(data)
     res_data.positive = data.to_html()
 
